@@ -80,6 +80,15 @@
             background-color: #f2f2f2;
             color: #333;
         }
+
+        /* Thêm CSS cho thanh cuộn lịch sử */
+        .history-scroll-container {
+            max-height: 200px; /* Chiều cao tối đa trước khi xuất hiện thanh cuộn */
+            overflow-y: auto;  /* Tạo thanh cuộn dọc khi nội dung tràn */
+            border: 1px solid #e0e0e0; /* Viền để dễ nhìn */
+            border-radius: 5px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -123,21 +132,23 @@
             <ul id="highScores" class="list-decimal pl-8 text-gray-700 text-left mx-auto max-w-xs"></ul>
             
             <h3 class="text-xl font-semibold mt-6 mb-3 text-gray-800">Lịch Sử Chơi Gần Đây</h3>
-            <div class="overflow-x-auto">
-                <table class="history-table mx-auto">
-                    <thead>
-                        <tr>
-                            <th>Tên</th>
-                            <th>Điểm</th>
-                            <th>Cấp độ</th>
-                            <th>Giao dịch</th>
-                            <th>Câu đố</th>
-                            <th>Thời gian</th>
-                        </tr>
-                    </thead>
-                    <tbody id="gameHistoryBody">
-                        </tbody>
-                </table>
+            <div class="history-scroll-container">
+                <div class="overflow-x-auto">
+                    <table class="history-table mx-auto">
+                        <thead>
+                            <tr>
+                                <th>Tên</th>
+                                <th>Điểm</th>
+                                <th>Cấp độ</th>
+                                <th>Giao dịch</th>
+                                <th>Câu đố</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gameHistoryBody">
+                            </tbody>
+                    </table>
+                </div>
             </div>
 
             <button id="playAgainBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300 mt-6 shadow">Chơi Lại</button>
@@ -189,15 +200,10 @@
     </div>
 
     <script src="puzzles.js"></script> 
-    <script src="gameData.js"></script> <script>
+    <script src="gameData.js"></script> 
+    
+    <script>
         // --- Trạng thái Game (giờ lấy từ gameData.js) ---
-        // let playerName = ''; // Đã chuyển sang game.playerName trong gameData.js
-        // let level = 1;       // Đã chuyển sang game.level
-        // let score = 0;       // Đã chuyển sang game.score
-        // let transactionCount = 0; // Đã chuyển sang game.transactionCount
-        // let combo = 0;       // Đã chuyển sang game.combo
-        // let keyLevel = 1;    // Đã chuyển sang game.keyLevel
-
         let currentTransaction = {}; 
         let originalTransactionData = {}; 
         let encryptedData = null; 
@@ -224,10 +230,10 @@
         const transactionIdEl = document.getElementById('transactionId');
         const accountNumberEl = document.getElementById('accountNumber');
         const amountEl = document.getElementById('amount');
-        const levelDisplayEl = document.getElementById('levelDisplay'); // Đổi tên để tránh trùng biến
-        const scoreDisplayEl = document.getElementById('scoreDisplay'); // Đổi tên để tránh trùng biến
-        const comboDisplayEl = document.getElementById('comboDisplay'); // Đổi tên để tránh trùng biến
-        const upgradeDisplayEl = document.getElementById('upgradeDisplay'); // Đổi tên để tránh trùng biến
+        const levelDisplayEl = document.getElementById('levelDisplay');
+        const scoreDisplayEl = document.getElementById('scoreDisplay');
+        const comboDisplayEl = document.getElementById('comboDisplay');
+        const upgradeDisplayEl = document.getElementById('upgradeDisplay');
 
         const timerEl = document.getElementById('timer');
         const progressEl = document.getElementById('progress');
@@ -249,10 +255,10 @@
         const gameOverModal = document.getElementById('gameOverModal');
         const finalScoreEl = document.getElementById('finalScore');
         const finalLevelEl = document.getElementById('finalLevel');
-        const finalTransactionsEl = document.getElementById('finalTransactions'); // Mới
-        const finalPuzzlesEl = document.getElementById('finalPuzzles');         // Mới
+        const finalTransactionsEl = document.getElementById('finalTransactions');
+        const finalPuzzlesEl = document.getElementById('finalPuzzles');
         const highScoresEl = document.getElementById('highScores');
-        const gameHistoryBodyEl = document.getElementById('gameHistoryBody'); // Mới
+        const gameHistoryBodyEl = document.getElementById('gameHistoryBody');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const decryptMessage = document.getElementById('decryptMessage');
 
@@ -269,7 +275,7 @@
         startGameBtn.addEventListener('click', () => {
             const name = playerNameInput.value.trim();
             if (name) {
-                game.playerName = name; // Lưu tên vào đối tượng game
+                game.playerName = name;
                 playerNameDisplay.textContent = game.playerName;
                 welcomeModal.style.display = 'none';
                 generateTransaction();
@@ -467,7 +473,7 @@
                 btn.addEventListener('click', () => checkPuzzleAnswer(option, currentPuzzle.answer));
                 puzzleOptionsEl.appendChild(btn);
             });
-            hintBtn.disabled = game.score < 20 || hintUsed; // Dùng game.score
+            hintBtn.disabled = game.score < 20 || hintUsed;
             puzzleModal.style.display = 'flex';
             puzzleFeedbackEl.textContent = '';
         }
@@ -477,7 +483,7 @@
          */
         function useHint() {
             if (game.score >= 20 && !hintUsed && currentPuzzle && !puzzleAttempted) { 
-                addScore(-20); // Dùng addScore
+                addScore(-20);
                 hintUsed = true;
                 
                 const wrongOptions = currentPuzzle.options.filter(opt => opt !== currentPuzzle.answer);
@@ -547,15 +553,15 @@
                         decryptSection.classList.add('hidden'); 
                         transactionCard.classList.remove('hack-effect'); 
                         
-                        addScore(50 * game.level * game.keyLevel * (game.combo + 1)); // Dùng addScore, game.level, game.keyLevel, game.combo
-                        incrementPuzzlesSolved(); // Tăng số câu đố đã giải
+                        addScore(50 * game.level * game.keyLevel * (game.combo + 1));
+                        incrementPuzzlesSolved();
                         successSound.play(); 
                     } catch (e) {
                         console.error("Lỗi giải mã/khôi phục:", e);
                         feedbackEl.textContent = 'Lỗi trong quá trình khôi phục giao dịch! Vui lòng thử lại!';
                         feedbackEl.className = 'error animate-error';
                         errorSound.play();
-                        addScore(-20); // Dùng addScore
+                        addScore(-20);
                     }
                     updateUI(); 
                 }, 1000); 
@@ -563,8 +569,8 @@
                 puzzleFeedbackEl.textContent = 'Trả lời sai! Giao dịch này không thể khôi phục bằng cách giải đố nữa. Vui lòng bỏ qua giao dịch.';
                 puzzleFeedbackEl.className = 'error animate-error';
                 errorSound.play();
-                resetCombo(); // Dùng resetCombo
-                addScore(-10); // Dùng addScore
+                resetCombo();
+                addScore(-10);
                 actionBtn.disabled = true; 
                 updateUI();
             }
@@ -582,8 +588,8 @@
             transactionCard.classList.remove('hack-effect');
             feedbackEl.textContent = 'Dữ liệu SQL Injection đã được làm sạch! Giao dịch an toàn trở lại.';
             feedbackEl.className = 'feedback animate-success';
-            addScore(40 * game.level * game.keyLevel * (game.combo + 1)); // Dùng addScore, game.level, game.keyLevel, game.combo
-            incrementPuzzlesSolved(); // Tăng số câu đố đã giải
+            addScore(40 * game.level * game.keyLevel * (game.combo + 1));
+            incrementPuzzlesSolved();
             successSound.play();
             updateUI();
         }
@@ -592,8 +598,8 @@
          * Bỏ qua giao dịch hiện tại (mất điểm).
          */
         function skipTransaction() {
-            addScore(-50); // Dùng addScore
-            resetCombo(); // Dùng resetCombo
+            addScore(-50);
+            resetCombo();
             feedbackEl.textContent = 'Đã bỏ qua giao dịch, mất 50 điểm!';
             feedbackEl.className = 'error animate-error';
             errorSound.play();
@@ -617,8 +623,8 @@
             encryptedData = CryptoJS.AES.encrypt(data, key, { iv: iv }).toString();
             feedbackEl.textContent = `Giao dịch đã được mã hóa thành công bằng AES! (Cipher: ${encryptedData.substr(0, 15)}...)`;
             feedbackEl.className = 'feedback animate-success';
-            addScore(10 * game.level * game.keyLevel * (game.combo + 1)); // Dùng addScore, game.level, game.keyLevel, game.combo
-            incrementCombo(); // Dùng incrementCombo
+            addScore(10 * game.level * game.keyLevel * (game.combo + 1));
+            incrementCombo();
             updateUI();
             successSound.play();
         }
@@ -636,8 +642,8 @@
             signature = CryptoJS.SHA256(JSON.stringify(currentTransaction) + correctKey).toString(); 
             feedbackEl.textContent = `Giao dịch đã được ký thành công bằng RSA! (Signature: ${signature.substr(0, 15)}...)`;
             feedbackEl.className = 'feedback animate-success';
-            addScore(15 * game.level * game.keyLevel * (game.combo + 1)); // Dùng addScore, game.level, game.keyLevel, game.combo
-            incrementCombo(); // Dùng incrementCombo
+            addScore(15 * game.level * game.keyLevel * (game.combo + 1));
+            incrementCombo();
             updateUI();
             successSound.play();
         }
@@ -658,15 +664,15 @@
             if (currentHash === originalHash) {
                 feedbackEl.textContent = `Kiểm tra toàn vẹn thành công bằng SHA! (Hash: ${currentHash.substr(0, 15)}...)`;
                 feedbackEl.className = 'feedback animate-success';
-                addScore(25 * game.level * game.keyLevel * (game.combo + 1)); // Dùng addScore, game.level, game.keyLevel, game.combo
-                incrementCombo(); // Dùng incrementCombo
+                addScore(25 * game.level * game.keyLevel * (game.combo + 1));
+                incrementCombo();
                 successSound.play();
                 nextBtn.disabled = false; 
             } else {
                 feedbackEl.textContent = `Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! (Hash: ${currentHash.substr(0, 15)}...) Giao dịch đã bị thay đổi! Bỏ qua hoặc Giải Câu Đố để khôi phục.`;
                 feedbackEl.className = 'error animate-error';
                 errorSound.play();
-                resetCombo(); // Dùng resetCombo
+                resetCombo();
                 decryptSection.classList.remove('hidden'); 
                 updateUI();
             }
@@ -677,8 +683,8 @@
          */
         function upgradeKey() {
             if (game.score >= 100 && game.keyLevel < 3) { 
-                addScore(-100); // Dùng addScore
-                upgradeKeyLevel(); // Dùng upgradeKeyLevel
+                addScore(-100);
+                upgradeKeyLevel();
                 feedbackEl.textContent = `Đã nâng cấp khóa lên cấp ${game.keyLevel}! (Hệ số điểm: ${game.keyLevel}x)`;
                 feedbackEl.className = 'feedback animate-success';
                 upgradeSound.play(); 
@@ -691,19 +697,17 @@
          */
         function endGame() {
             clearInterval(timerInterval); 
-            saveGameResult(); // Lưu kết quả vào lịch sử và cập nhật bảng xếp hạng
+            saveGameResult();
             
             finalScoreEl.textContent = game.score;
             finalLevelEl.textContent = game.level;
-            finalTransactionsEl.textContent = game.transactionsCompleted; // Hiển thị số giao dịch hoàn thành
-            finalPuzzlesEl.textContent = game.puzzlesSolved;             // Hiển thị số câu đố đã giải
+            finalTransactionsEl.textContent = game.transactionsCompleted;
+            finalPuzzlesEl.textContent = game.puzzlesSolved;
 
-            // Hiển thị bảng xếp hạng cao nhất
-            highScoresEl.innerHTML = highScores.map(hs => `<li>${hs.name} - ${hs.score} điểm (Cấp ${hs.level}) - ${hs.date}</li>`).join('');
+            highScoresEl.innerHTML = getHighScores().map(hs => `<li>${hs.name} - ${hs.score} điểm (Cấp ${hs.level}) - ${hs.date}</li>`).join('');
             
-            // Hiển thị lịch sử chơi chi tiết
-            gameHistoryBodyEl.innerHTML = ''; // Xóa dữ liệu cũ
-            getGameHistory().slice().reverse().forEach(entry => { // Sắp xếp ngược để hiển thị gần nhất trước
+            gameHistoryBodyEl.innerHTML = '';
+            getGameHistory().slice().reverse().forEach(entry => {
                 const row = gameHistoryBodyEl.insertRow();
                 row.insertCell().textContent = entry.name;
                 row.insertCell().textContent = entry.score;
@@ -722,7 +726,7 @@
          * Đặt lại trò chơi về trạng thái ban đầu để chơi lại.
          */
         function resetGame() {
-            resetGameData(); // Dùng hàm resetGameData từ gameData.js
+            resetGameData();
             gameOverModal.style.display = 'none'; 
             welcomeModal.style.display = 'flex'; 
             disableAllButtons(); 
@@ -747,14 +751,14 @@
          */
         function nextTransaction() {
             clearInterval(timerInterval); 
-            game.transactionCount++; // Dùng game.transactionCount
-            incrementTransactionsCompleted(); // Tăng số giao dịch hoàn thành
+            game.transactionCount++;
+            incrementTransactionsCompleted();
             
-            if (game.transactionCount >= 3) { // Dùng game.transactionCount
-                levelUp(); // Dùng levelUp
-                game.transactionCount = 0; // Dùng game.transactionCount
+            if (game.transactionCount >= 3) {
+                levelUp();
+                game.transactionCount = 0;
                 levelUpSound.play(); 
-                if (game.level > 3) { // Dùng game.level
+                if (game.level > 3) {
                     endGame();
                     return;
                 }
