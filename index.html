@@ -210,6 +210,10 @@
         let signature = null; 
         let originalHash = null; 
 
+        // Thêm biến để lưu trữ hash sau khi ký và hash sau khi nhận (mô phỏng)
+        let sentHash = null; // Hash được tính trước khi gửi (trong hàm signTransaction)
+        let receivedHash = null; // Hash được tính khi nhận (trong hàm verifyIntegrity)
+
         const initialTime = 50; 
         let timeLeft = initialTime; 
         let timerInterval = null; 
@@ -222,6 +226,13 @@
         let puzzleAttempted = false; 
         
         const correctKey = '0123456789abcdef'; 
+        // Khóa công khai và riêng tư mô phỏng cho RSA
+        // Trong game này, chúng ta dùng `correctKey` để mô phỏng cả ký và xác thực
+        // Giả sử có một public key và private key tương ứng
+        const senderPublicKey = 'sender_public_key_mock'; 
+        const senderPrivateKey = 'sender_private_key_mock'; // dùng để ký
+        const receiverPublicKey = 'receiver_public_key_mock'; 
+        const receiverPrivateKey = 'receiver_private_key_mock'; // dùng để giải mã RSA (nếu có)
 
         // --- Các Phần Tử DOM (Document Object Model) ---
         const playerNameInput = document.getElementById('playerNameInput'); 
@@ -268,6 +279,7 @@
         const upgradeSound = new Audio('https://freesound.org/data/previews/320/320655_4764823-lq.mp3');
         const levelUpSound = new Audio('https://freesound.org/data/previews/387/387139_7077576-lq.mp3');
         const hackSound = new Audio('https://freesound.org/data/previews/277/277028_4954752-lq.mp3');
+        const rejectSound = new Audio('https://freesound.org/data/previews/266/266914_4654877-lq.mp3'); // Âm thanh từ chối giao dịch
 
         // --- Khởi Tạo Game ---
         welcomeModal.style.display = 'flex'; // Hiển thị modal chào mừng khi tải trang
@@ -324,7 +336,9 @@
                     encryptedData = CryptoJS.AES.encrypt(temp, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') }).toString();
                     console.log("Hack: Double Encryption");
                 } else if (hackType === 'fake_signature') {
-                    signature = CryptoJS.SHA256(JSON.stringify({ ...originalTransactionData, amount: (parseFloat(originalTransactionData.amount) + 999).toFixed(2) }) + 'fake_secret_key').toString();
+                    // Để mô phỏng xác thực thất bại, chúng ta sẽ tạo một chữ ký không thể giải mã bằng senderPublicKey
+                    // Ở đây, chúng ta dùng một khóa không liên quan để tạo chữ ký giả mạo
+                    signature = CryptoJS.SHA256(JSON.stringify(originalTransactionData) + 'fake_signing_key_by_hacker').toString(); 
                     console.log("Hack: Fake Signature");
                     feedbackEl.textContent = 'Cảnh báo: Hacker tấn công! Chữ ký đã bị giả mạo! Cần giải đố để khôi phục.';
                     feedbackEl.className = 'error animate-error';
@@ -367,7 +381,8 @@
             signBtn.disabled = isHacked || encryptedData === null || signature !== null; 
             verifyBtn.disabled = isHacked || signature === null; 
             
-            nextBtn.disabled = isHacked || encryptedData === null || signature === null || CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash;
+            // nextBtn chỉ được kích hoạt khi không bị hack VÀ đã mã hóa VÀ đã ký VÀ SHA khớp VÀ không có lỗi xác thực/toàn vẹn chưa được xử lý
+            nextBtn.disabled = isHacked || encryptedData === null || signature === null || CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash || (feedbackEl.textContent.includes("Từ chối giao dịch") && feedbackEl.className.includes("error"));
 
             if (isHacked || (isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash)) {
                 transactionCard.classList.add('hack-effect');
@@ -544,7 +559,7 @@
                             pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
                             feedbackEl.textContent = `Giải mã khóa sai thành công! Giao dịch đã được khôi phục! (+${pointsGained} điểm)`;
                         } else if (hackType === 'fake_signature') { 
-                            signature = null; 
+                            signature = null; // Vô hiệu hóa chữ ký giả mạo
                             pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
                             feedbackEl.textContent = `Chữ ký giả mạo đã được phát hiện và vô hiệu hóa! Bạn có thể ký lại giao dịch. (+${pointsGained} điểm)`;
                         } else if (isTampered) { 
@@ -579,7 +594,6 @@
                 errorSound.play();
                 resetCombo();
                 addScore(pointsLost);
-                // actionBtn.disabled = true; // This was disabling the SQL Injection button too
                 updateUI();
             }
         }
@@ -644,6 +658,7 @@
 
         /**
          * Thực hiện ký RSA cho giao dịch (mô phỏng).
+         * Thêm khả năng lỗi xác thực ở đây.
          */
         function signTransaction() {
             if (isHacked || (isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash)) { 
@@ -652,7 +667,27 @@
                 errorSound.play();
                 return;
             }
-            signature = CryptoJS.SHA256(JSON.stringify(currentTransaction) + correctKey).toString(); 
+            
+            // Tính hash của dữ liệu gốc trước khi ký (bên gửi)
+            const dataToSign = JSON.stringify(currentTransaction);
+            sentHash = CryptoJS.SHA256(dataToSign).toString();
+
+            // Mô phỏng việc ký bằng khóa riêng tư của người gửi
+            // Để mô phỏng lỗi xác thực, đôi khi sẽ dùng senderPublicKey để ký, điều này là SAI
+            // Một chữ ký RSA được tạo ra bằng PRIVATE KEY của người gửi
+            // Một chữ ký RSA được xác thực bằng PUBLIC KEY của người gửi
+            if (Math.random() < 0.15) { // 15% khả năng tạo chữ ký lỗi để xác thực thất bại
+                signature = CryptoJS.SHA256(dataToSign + receiverPublicKey).toString(); // Dùng khóa sai để ký
+                feedbackEl.textContent = `Cảnh báo: Lỗi hệ thống khi tạo chữ ký! Chữ ký không hợp lệ!`;
+                feedbackEl.className = 'error animate-error';
+                errorSound.play();
+                signature = null; // Đặt lại signature về null để không cho verify
+                resetCombo();
+                updateUI();
+                return;
+            } else {
+                signature = CryptoJS.SHA256(dataToSign + senderPrivateKey).toString(); // Ký đúng bằng khóa riêng tư của người gửi
+            }
             
             const pointsGained = 15 * game.level * game.keyLevel * (game.combo + 1);
             feedbackEl.textContent = `Giao dịch đã được ký thành công bằng RSA! (+${pointsGained} điểm)`;
@@ -665,6 +700,8 @@
 
         /**
          * Kiểm tra tính toàn vẹn của giao dịch bằng SHA-256.
+         * Hiển thị rõ hash gốc và hash nhận được nếu không khớp.
+         * Admin từ chối giao dịch nếu toàn vẹn thất bại.
          */
         function verifyIntegrity() {
             if (isHacked) { 
@@ -673,24 +710,58 @@
                 errorSound.play();
                 return;
             }
+
+            // Giải mã bản mã nhận được (mô phỏng, thực tế là giải mã bên nhận)
+            let decryptedTransactionData;
+            try {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
+                decryptedTransactionData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+            } catch (e) {
+                feedbackEl.textContent = `Lỗi giải mã! Không thể kiểm tra tính toàn vẹn. Giao dịch bị từ chối!`;
+                feedbackEl.className = 'error animate-error';
+                errorSound.play();
+                resetCombo();
+                // Admin từ chối giao dịch
+                nextBtn.disabled = true; // Không cho phép sang giao dịch tiếp theo
+                return;
+            }
             
-            const currentHash = CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString();
+            // Tính hash của dữ liệu đã giải mã (bên nhận)
+            receivedHash = CryptoJS.SHA256(JSON.stringify(decryptedTransactionData)).toString();
             
-            if (currentHash === originalHash) {
+            // Kiểm tra chữ ký số bằng khóa công khai của người gửi
+            // Trong mô phỏng này, chúng ta sẽ kiểm tra xem chữ ký có khớp với hash và khóa riêng tư của người gửi không
+            // (Thực tế là giải mã chữ ký bằng khóa công khai của người gửi và so sánh với hash của dữ liệu)
+            const expectedSignature = CryptoJS.SHA256(JSON.stringify(originalTransactionData) + senderPrivateKey).toString(); 
+            const isSignatureValid = (signature === expectedSignature);
+
+            if (!isSignatureValid) {
+                feedbackEl.textContent = `Xác thực chữ ký thất bại! Chữ ký không hợp lệ! Giao dịch bị từ chối!`;
+                feedbackEl.className = 'error animate-error';
+                errorSound.play();
+                resetCombo();
+                // Admin từ chối giao dịch
+                nextBtn.disabled = true; // Không cho phép sang giao dịch tiếp theo
+                return;
+            }
+
+            // So sánh hash nhận được với hash gốc
+            if (receivedHash === originalHash) {
                 const pointsGained = 25 * game.level * game.keyLevel * (game.combo + 1);
-                feedbackEl.textContent = `Kiểm tra toàn vẹn thành công bằng SHA! (+${pointsGained} điểm)`;
+                feedbackEl.textContent = `Kiểm tra toàn vẹn thành công bằng SHA! Chữ ký hợp lệ. (+${pointsGained} điểm)`;
                 feedbackEl.className = 'feedback animate-success';
                 addScore(pointsGained);
                 incrementCombo();
                 successSound.play();
                 nextBtn.disabled = false; 
             } else {
-                feedbackEl.textContent = `Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! Giao dịch đã bị thay đổi! Bỏ qua hoặc Giải Câu Đố để khôi phục.`;
+                feedbackEl.textContent = `❌ **TOÀN VẸN THẤT BẠI! GIAO DỊCH BỊ TỪ CHỐI!**\nHash gốc: ${originalHash}\nHash nhận được: ${receivedHash}`;
                 feedbackEl.className = 'error animate-error';
                 errorSound.play();
+                rejectSound.play(); // Chơi âm thanh từ chối
                 resetCombo();
-                decryptSection.classList.remove('hidden'); 
-                updateUI();
+                // Admin từ chối giao dịch
+                nextBtn.disabled = true; // Không cho phép sang giao dịch tiếp theo
             }
         }
 
@@ -791,6 +862,8 @@
             isHacked = false;
             hackType = null;
             puzzleAttempted = false; 
+            sentHash = null; // Reset
+            receivedHash = null; // Reset
             generateTransaction(); 
             updateUI(); 
         }
