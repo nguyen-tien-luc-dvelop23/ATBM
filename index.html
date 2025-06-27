@@ -3,66 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trò Chơi Hệ Thống Mã Hóa Ngân Hàng</title>
+    <title>Ngân hàng mã hóa </title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Phong cách chung cho body */
-        body { 
-            font-family: Arial, sans-serif; 
-            background: linear-gradient(to bottom, #1e3a8a, #3b82f6); 
-            transition: background 1s; 
+        :root {
+            --primary-blue: #4a90e2;
+            --secondary-blue: #63b3ed;
+            --accent-green: #48bb78;
+            --accent-red: #ef4444;
+            --dark-text: #2c3e50;
+            --light-bg: #f0f8ff;
+            --card-bg: #ffffff;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0f2f7 0%, #cceeff 100%); /* Light blue gradient */
             display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        /* Card giao dịch */
-        .transaction-card { 
-            max-width: 600px; 
-            margin: 20px auto; 
-            background: rgba(255, 255, 255, 0.95); 
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        /* Màu sắc phản hồi */
-        .feedback { color: #22c55e; } /* Xanh lá cho thành công */
-        .error { color: #ef4444; }    /* Đỏ cho lỗi */
-        /* Hiệu ứng animate */
-        .animate-success { animation: flash 0.5s ease-in-out; }
-        .animate-error { animation: shake 0.4s ease-in-out; }
-        .hack-effect { animation: hack 1s infinite; border: 2px solid #ef4444; } /* Hiệu ứng nhấp nháy đỏ khi bị hack */
-        /* Keyframes cho hiệu ứng */
-        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-        @keyframes hack { 0% { filter: brightness(100%); } 50% { filter: brightness(70%); } 100% { filter: brightness(100%); } }
-        /* Thanh tiến độ */
-        .progress-bar { height: 20px; background-color: #e5e7eb; border-radius: 10px; overflow: hidden; }
-        .progress { height: 100%; background-color: #3b82f6; transition: width 0.1s linear; }
-        /* Modal */
-        .modal { 
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); 
-            z-index: 1000; 
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-y: auto; /* Allow vertical scrolling for the whole page */
+            overflow-x: hidden; /* Hide horizontal scroll */
+            transition: background 0.5s ease;
+            padding: 20px 0; /* Add some padding for scrollable content */
         }
-        .modal-content { 
-            background: white; 
-            margin: auto; /* Căn giữa */
-            padding: 20px; 
-            max-width: 500px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+
+        /* Level-specific backgrounds */
+        body.level-1 { background: linear-gradient(135deg, #e0f2f7 0%, #cceeff 100%); }
+        body.level-2 { background: linear-gradient(135deg, #ccedff 0%, #aaddff 100%); }
+        body.level-3 { background: linear-gradient(135deg, #b3e0ff 0%, #88ccff 100%); }
+        body.level-4 { background: linear-gradient(135deg, #99d6ff 0%, #66bbff 100%); }
+        body.level-5 { background: linear-gradient(135deg, #80ccff 0%, #3399ff 100%); }
+
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 15px 40px var(--shadow-medium);
+            padding: 35px;
+            width: 95%;
+            max-width: 850px;
+            text-align: center;
             position: relative;
+            z-index: 10;
+            animation: fadeIn 0.8s ease-out;
         }
-        .option-btn { width: 100%; margin: 5px 0; }
-        .close-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; }
-        /* Màu nền theo cấp độ */
-        .level-2 { background: linear-gradient(to bottom, #4c1d95, #8b5cf6); }
-        .level-3 { background: linear-gradient(to bottom, #7c2d12, #f97316); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2 {
+            color: var(--dark-text);
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .section {
+            background-color: var(--light-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+        .section:hover {
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05), 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
+            margin: 6px;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .btn:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        /* Specific button styles */
+        .btn-primary { background-color: var(--primary-blue); color: white; }
+        .btn-primary:hover { background-color: #3a7bd5; }
+        .btn-success { background-color: var(--accent-green); color: white; }
+        .btn-success:hover { background-color: #38a169; }
+        .btn-danger { background-color: var(--accent-red); color: white; }
+        .btn-danger:hover { background-color: #c53030; }
+        .btn-info { background-color: var(--secondary-blue); color: white; }
+        .btn-info:hover { background-color: #55a3d9; }
+        .btn-neutral { background-color: #a0aec0; color: white; }
+        .btn-neutral:hover { background-color: #718096; }
+
+
+        .feedback {
+            margin-top: 20px;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--accent-green); /* Green for success */
+            animation: pulseText 1s infinite alternate;
+        }
+        .error {
+            color: var(--accent-red); /* Red for error */
+            font-weight: 600;
+            animation: shake 0.5s;
+        }
+        .animate-success {
+            animation: fadeInOut 2s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(10px); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-8px); }
+            80% { transform: translateX(8px); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes pulseText {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            height: 12px;
+            margin-top: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background-color: var(--primary-blue);
+            border-radius: 5px;
+            transition: width 0.3s ease-out, background-color 0.3s ease-out;
+            animation: progressBarFill 1s forwards;
+        }
+        @keyframes progressBarFill {
+            from { width: 0%; }
+            to { width: var(--progress-width, 100%); }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px var(--shadow-medium);
+            max-width: 550px;
+            width: 90%;
+            transform: scale(0.9);
+            animation: modalPopIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            position: relative; /* Quan trọng để nút đóng có thể dùng position: absolute */
+        }
+        @keyframes modalPopIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content input {
+            padding: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: calc(100% - 24px);
+            font-size: 1.1em;
+            text-align: center;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .modal-content input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+            outline: none;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background-color: #f7fafc;
+            color: var(--dark-text);
+            transition: all 0.3s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: var(--primary-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .option-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #e9e9e9;
+            color: #888;
+        }
+
+        .hidden {
+            display: none;
+        }
 
         /* Bảng lịch sử người chơi */
         .history-table {
@@ -70,814 +264,336 @@
             border-collapse: collapse;
             margin-top: 15px;
             font-size: 0.9em;
+            background-color: var(--card-bg); /* Table background */
+            border-radius: 8px;
+            overflow: hidden; /* For rounded corners on table */
         }
         .history-table th, .history-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #edf2f7; /* Lighter border for table cells */
+            padding: 10px;
             text-align: left;
         }
         .history-table th {
-            background-color: #f2f2f2;
-            color: #333;
+            background-color: #e2e8f0; /* Header background */
+            color: var(--dark-text);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+        }
+        .history-table tr:nth-child(even) {
+            background-color: #f7fafc; /* Zebra striping */
         }
 
         /* Thêm CSS cho thanh cuộn lịch sử */
         .history-scroll-container {
-            max-height: 200px; /* Chiều cao tối đa trước khi xuất hiện thanh cuộn */
+            max-height: 250px; /* Chiều cao tối đa trước khi xuất hiện thanh cuộn */
             overflow-y: auto;  /* Tạo thanh cuộn dọc khi nội dung tràn */
             border: 1px solid #e0e0e0; /* Viền để dễ nhìn */
-            border-radius: 5px;
+            border-radius: 10px;
             margin-top: 10px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
         }
+        /* Custom scrollbar styles (optional, for modern browsers) */
+        .history-scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .history-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .history-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 10px;
+        }
+        .history-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #3a7bd5;
+        }
+
+
+        /* Thêm style cho trạng thái Hack / Boss */
+        .transaction-card {
+            border: 2px solid #e0e0e0;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hack-effect {
+            border-color: #f97316 !important; /* Orange */
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.6);
+            animation: pulse-orange 1.2s infinite alternate;
+        }
+
+        .boss-attack {
+            animation: border-pulse 1s infinite alternate;
+            border: 3px solid #ff0000 !important;
+            box-shadow: 0 0 25px #ff0000;
+        }
+        @keyframes border-pulse {
+            0% { border-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
+            100% { border-color: #a00000; box-shadow: 0 0 30px #a00000; }
+        }
+
+        @keyframes pulse-orange {
+            0% { border-color: #f97316; box-shadow: 0 0 10px rgba(249, 115, 22, 0.4); }
+            100% { border-color: #e06300; box-shadow: 0 0 25px rgba(224, 99, 0, 0.8); }
+        }
+
+        /* Player Stats Grid */
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background-color: #e6f2ff; /* Lighter blue for stats */
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-size: 0.95em;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+        .stat-item span {
+            font-weight: 700;
+            color: var(--primary-blue);
+            font-size: 1.1em;
+        }
+        .stat-item.score span { color: var(--accent-green); }
+        .stat-item.level span { color: #8b5cf6; /* purple */ }
+        .stat-item.combo span { color: #facc15; /* yellow */ }
+        .stat-item.upgrade span { color: #60a5fa; /* light blue */ }
+
+
+        /* Transaction Details */
+        .transaction-details p {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            color: #4a5568;
+        }
+        .transaction-details p span {
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+        .transaction-details #amount {
+            font-size: 1.8em;
+            color: var(--accent-green);
+            font-weight: 700;
+            margin-top: 10px;
+            display: block;
+        }
+
+        /* Game Over Modal Specifics */
+        #gameOverModal .modal-content {
+            background: linear-gradient(145deg, #ffe0e0 0%, #ffcccc 100%);
+            border: 2px solid var(--accent-red);
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+        }
+        #gameOverModal h2 {
+            color: var(--accent-red);
+            font-size: 2.5em;
+            animation: tada 1s ease-in-out;
+        }
+        @keyframes tada {
+            0% { transform: scale(1); }
+            10%, 20% { transform: scale(0.9) rotate(-3deg); }
+            30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+            40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+        #gameOverModal p {
+            color: #4a5568;
+            font-size: 1.2em;
+        }
+        #gameOverModal p span {
+            font-weight: 700;
+        }
+        #gameOverModal #finalScore { color: var(--accent-green); }
+        #gameOverModal #finalLevel { color: #8b5cf6; }
+        #gameOverModal #playAgainBtn {
+            background-color: var(--primary-blue);
+            color: white;
+            margin-top: 20px;
+        }
+        #gameOverModal #playAgainBtn:hover {
+            background-color: #3a7bd5;
+        }
+
+        /* Welcome Modal Specifics */
+        #welcomeModal .modal-content {
+            background: linear-gradient(145deg, #e6f7ff 0%, #d4edff 100%);
+            border: 2px solid var(--primary-blue);
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+        }
+        #welcomeModal h2 {
+            color: var(--primary-blue);
+            font-size: 2.5em;
+        }
+        #welcomeModal p {
+            color: #4a5568;
+            font-size: 1.1em;
+        }
+        #welcomeModal #startGameBtn {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+        #welcomeModal #startGameBtn:hover {
+            background-color: #3a7bd5;
+        }
+
+        /* Puzzle Modal Specifics */
+        #puzzleModal .modal-content {
+            background: linear-gradient(145deg, #fffbe6 0%, #fff0b3 100%);
+            border: 2px solid #facc15;
+            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.3);
+        }
+        #puzzleModal h2 {
+            color: #d97706; /* orange-700 */
+            font-size: 2em;
+        }
+        #puzzleModal #puzzleText {
+            color: #4a5568;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        #puzzleModal .option-btn {
+            background-color: #fff;
+            border: 1px solid #fed7aa; /* orange-200 */
+            color: #7c2d12; /* orange-900 */
+        }
+        #puzzleModal .option-btn:hover:not(:disabled) {
+            background-color: #facc15; /* yellow-400 */
+            color: white;
+        }
+        #puzzleModal #hintBtn {
+            background-color: #fbbf24; /* amber-400 */
+            color: white;
+        }
+        #puzzleModal #hintBtn:hover {
+            background-color: #f59e0b; /* amber-500 */
+        }
+        #puzzleModal #puzzleFeedback.feedback {
+            color: var(--accent-green);
+        }
+        #puzzleModal #puzzleFeedback.error {
+            color: var(--accent-red);
+        }
+
     </style>
 </head>
-<body>
+<body class="level-1">
+    <div class="container">
+        <h1 class="text-4xl mb-6 text-blue-700">Ngân hàng mã hóa </h1>
+
+        <div class="section mb-6">
+            <p class="text-xl font-semibold mb-4 text-gray-700">Người chơi: <span id="playerNameDisplay" class="text-blue-600 font-bold"></span></p>
+            <div class="player-stats">
+                <div class="stat-item score">
+                    Điểm: <span id="scoreDisplay">0</span>
+                </div>
+                <div class="stat-item level">
+                    Cấp độ: <span id="levelDisplay">1</span>
+                </div>
+                <div class="stat-item combo">
+                    Combo: <span id="comboDisplay">0</span>
+                </div>
+                <div class="stat-item upgrade">
+                    Nâng cấp: <span id="upgradeDisplay">Khóa Cấp 1</span>
+                </div>
+            </div>
+            <button id="upgradeKeyBtn" class="btn btn-info text-sm mt-4">Nâng cấp Khóa (100đ)</button>
+        </div>
+
+        <div id="transactionCard" class="section transaction-card mb-6">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Giao Dịch Hiện Tại</h2>
+            <div class="transaction-details text-lg mb-4">
+                <p>ID: <span id="transactionId" class="font-mono"></span></p>
+                <p>Tài khoản: <span id="accountNumber" class="font-mono"></span></p>
+                <p>Số tiền: <span id="amount" class="font-mono"></span></p>
+            </div>
+            <div class="progress-bar-container">
+                <div id="progress" class="progress-bar"></div>
+            </div>
+            <p class="text-base font-semibold mt-2">Thời gian còn lại: <span id="timer" class="text-blue-500">50</span>s</p>
+            <p id="feedback" class="feedback text-base mt-4"></p>
+        </div>
+
+        <div class="section flex flex-wrap justify-center mb-6">
+            <button id="encryptBtn" class="btn btn-primary">Mã hóa (AES)</button>
+            <button id="signBtn" class="btn btn-success">Ký (RSA)</button>
+            <button id="verifyBtn" class="btn btn-neutral">Xác minh toàn vẹn</button>
+            <button id="nextBtn" class="btn btn-primary">Xử lý Giao dịch</button>
+            <button id="skipBtn" class="btn btn-danger">Bỏ qua (-50đ)</button>
+        </div>
+
+        <div id="decryptSection" class="section hidden bg-red-50 border-red-300 border-2">
+            <p id="decryptMessage" class="text-red-700 font-semibold mb-4 text-lg">Cảnh báo: Phát hiện giả mạo dữ liệu! Cần kiểm tra toàn vẹn!</p>
+            <button id="actionBtn" class="btn btn-danger">Giải quyết vấn đề</button>
+        </div>
+
+
+        <div class="section mt-6 text-left">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Lịch sử Chơi Gần đây</h2>
+            <div class="history-scroll-container">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Tên</th>
+                            <th>Điểm</th>
+                            <th>Cấp độ</th>
+                            <th>Giao dịch</th>
+                            <th>Câu đố</th>
+                            <th>Thời gian</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gameHistoryBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section mt-6 text-left">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Điểm cao nhất</h2>
+            <ol id="highScoresList" class="list-decimal list-inside text-lg">
+                </ol>
+        </div>
+
+    </div>
+
     <div id="welcomeModal" class="modal">
         <div class="modal-content">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Chào Mừng Đến Với Hệ Thống Mã Hóa Ngân Hàng!</h2>
-            <p class="text-gray-700 mb-3">Vui lòng nhập tên của bạn để bắt đầu:</p>
-            <input type="text" id="playerNameInput" placeholder="Tên của bạn" 
-                   class="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <p class="text-gray-700">Nhiệm vụ của bạn là bảo vệ các giao dịch ngân hàng bằng cách:</p>
-            <ul class="list-disc pl-5 mb-4 text-gray-700">
-                <li>Giáo Viên : Lê Thị Thùy Trang</li>
-                <li>Mã hóa dữ liệu bằng AES.</li>
-                <li>Ký và Xác thực giao dịch bằng RSA.</li>
-                <li>Kiểm tra tính toàn vẹn dữ liệu bằng SHA-256.</li>
-                <li>Giải mã/Khôi phục: Khi bị tấn công, hãy xử lý để khôi phục giao dịch.</li>
-            </ul>
-            <button id="startGameBtn" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-300 shadow">Bắt Đầu</button>
+            <h2 class="text-3xl font-bold mb-4 text-blue-700">Chào mừng đến với Ngân hàng mã hóa!</h2>
+            <p class="mb-4 text-gray-700">Bạn là một chuyên gia bảo mật ngân hàng. Nhiệm vụ của bạn là đảm bảo các giao dịch an toàn bằng cách mã hóa, ký và xác minh chúng. Cẩn thận với các cuộc tấn công của hacker!</p>
+            <input type="text" id="playerNameInput" placeholder="Nhập tên của bạn" class="w-full p-2 border border-gray-300 rounded text-center text-lg">
+            <button id="startGameBtn" class="btn btn-primary w-full">Bắt đầu trò chơi</button>
         </div>
     </div>
 
-    <div id="puzzleModal" class="modal">
+    <div id="puzzleModal" class="modal hidden">
         <div class="modal-content">
-            <span class="close-btn" onclick="document.getElementById('puzzleModal').style.display='none'">×</span>
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Câu Đố Giải Mã</h2>
-            <p id="puzzleText" class="mb-4 text-gray-700"></p>
-            <div id="puzzleOptions" class="grid grid-cols-1 gap-2"></div>
-            <button id="hintBtn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mt-4 transition duration-300 option-btn" disabled>Dùng Gợi Ý (20 điểm)</button>
-            <div id="puzzleFeedback" class="mt-4 text-center font-semibold"></div>
-        </div>
-    </div>
+            <button id="closePuzzleModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
 
-    <div id="gameOverModal" class="modal">
-        <div class="modal-content text-center">
-            <h2 class="text-2xl font-bold mb-4 text-red-600">Trò Chơi Kết Thúc!</h2>
-            <p class="text-lg text-gray-700">Điểm số cuối cùng: <span id="finalScore" class="font-bold text-blue-600"></span></p>
-            <p class="text-lg text-gray-700">Cấp độ đạt được: <span id="finalLevel" class="font-bold text-blue-600"></span></p>
-            <p class="text-lg text-gray-700">Giao dịch hoàn thành: <span id="finalTransactions" class="font-bold text-green-600"></span></p>
-            <p class="text-lg text-gray-700">Câu đố đã giải: <span id="finalPuzzles" class="font-bold text-purple-600"></span></p>
-
-            <h3 class="text-xl font-semibold mt-6 mb-3 text-gray-800">Bảng Xếp Hạng</h3>
-            <ol id="highScoresList" class="list-decimal pl-8 text-gray-700 text-left mx-auto max-w-xs"></ol>
-            
-            <h3 class="text-xl font-semibold mt-6 mb-3 text-gray-800">Lịch Sử Chơi Gần Đây</h3>
-            <div class="history-scroll-container">
-                <div class="overflow-x-auto">
-                    <table class="history-table mx-auto">
-                        <thead>
-                            <tr>
-                                <th>Tên</th>
-                                <th>Điểm</th>
-                                <th>Cấp độ</th>
-                                <th>Giao dịch</th>
-                                <th>Câu đố</th>
-                                <th>Thời gian</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gameHistoryBody">
-                            </tbody>
-                    </table>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Giải Mã Vấn Đề Bảo Mật!</h2>
+            <p id="puzzleText" class="text-lg mb-6"></p>
+            <div id="puzzleOptions" class="mb-6">
                 </div>
-            </div>
-
-            <button id="playAgainBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300 mt-6 shadow">Chơi Lại</button>
+            <button id="hintBtn" class="btn btn-info mb-4">Gợi ý (-20 điểm)</button>
+            <p id="puzzleFeedback" class="text-base"></p>
         </div>
     </div>
 
-    <div class="container mx-auto p-4 flex-grow">
-        <h1 class="text-4xl font-extrabold text-center mb-6 text-white drop-shadow-lg">Hệ Thống Mã Hóa Ngân Hàng</h1>
-        
-        <div id="gameStatus" class="text-center mb-6 text-white bg-black bg-opacity-30 p-4 rounded-lg shadow-inner">
-            <p class="text-xl font-semibold mb-2">
-                Người chơi: <span id="playerNameDisplay" class="text-green-300"></span> | 
-                Cấp độ: <span id="levelDisplay" class="text-yellow-300">1</span> | 
-                Điểm: <span id="scoreDisplay" class="text-green-300">0</span> | 
-                Combo: <span id="comboDisplay" class="text-purple-300">0</span>x | 
-                Nâng cấp: <span id="upgradeDisplay" class="text-cyan-300">Khóa Cơ Bản (1x)</span>
-            </p>
-            <p class="text-lg">Thời gian còn lại: <span id="timer" class="font-bold">50</span>s</p>
-            <div class="progress-bar mt-3"><div id="progress" class="progress"></div></div>
-        </div>
-
-        <div id="transactionCard" class="transaction-card p-6 rounded-xl shadow-lg border border-gray-200">
-            <h2 class="text-2xl font-bold mb-5 text-gray-800">Giao Dịch Hiện Tại</h2>
-            <p class="text-lg mb-2 text-gray-700"><strong>Mã Giao Dịch:</strong> <span id="transactionId" class="font-semibold text-gray-900"></span></p>
-            <p class="text-lg mb-2 text-gray-700"><strong>Số Tài Khoản:</strong> <span id="accountNumber" class="font-semibold text-gray-900"></span></p>
-            <p class="text-lg mb-4 text-gray-700"><strong>Số Tiền:</strong> <span id="amount" class="font-bold text-blue-700"></span></p>
-            
-            <div id="decryptSection" class="mt-6 p-4 bg-red-100 border border-red-400 rounded-lg hidden">
-                <p class="font-bold text-red-700 mb-3" id="decryptMessage"></p>
-                <div class="flex flex-wrap gap-2">
-                    <button id="actionBtn" class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition duration-300 shadow flex-grow"></button>
-                    <button id="skipBtn" class="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 transition duration-300 shadow flex-grow">Bỏ Qua (Mất 50 điểm)</button>
-                </div>
-            </div>
-
-            <div class="mt-6 border-t pt-4 border-gray-200 flex flex-wrap gap-3">
-                <button id="encryptBtn" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-300 shadow flex-1 min-w-[120px]">Mã Hóa (AES)</button>
-                <button id="signBtn" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-300 shadow flex-1 min-w-[120px]" disabled>Ký (RSA)</button>
-                <button id="verifyBtn" class="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition duration-300 shadow flex-1 min-w-[120px]" disabled>Kiểm Tra Toàn Vẹn (SHA)</button>
-                <button id="nextBtn" class="bg-gray-600 text-white px-5 py-2 rounded-lg hover:bg-gray-700 transition duration-300 shadow flex-1 min-w-[120px]" disabled>Giao Dịch Tiếp Theo</button>
-            </div>
-
-            <div id="feedback" class="mt-4 text-center font-bold text-lg"></div>
-
-            <div class="mt-6 border-t pt-4 border-gray-200 text-center">
-                <button id="upgradeKeyBtn" class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition duration-300 shadow" disabled>Nâng Cấp Khóa (100 điểm)</button>
-            </div>
+    <div id="gameOverModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold mb-4 text-red-700">GAME OVER!</h2>
+            <p class="text-xl mb-2">Điểm của bạn: <span id="finalScore" class="font-bold text-green-600">0</span></p>
+            <p class="text-lg mb-2">Cấp độ đạt được: <span id="finalLevel" class="font-bold text-purple-600">1</span></p>
+            <p class="text-lg mb-2">Giao dịch đã xử lý: <span id="finalTransactions" class="font-bold">0</span></p>
+            <p class="text-lg mb-4">Câu đố đã giải: <span id="finalPuzzles" class="font-bold">0</span></p>
+            <button id="playAgainBtn" class="btn btn-primary w-full">Chơi lại</button>
         </div>
     </div>
 
-    <script src="puzzles.js"></script> 
-    <script src="gameData.js"></script> 
-    
-    <script>
-        // --- Trạng thái Game (giờ lấy từ gameData.js) ---
-        let currentTransaction = {}; 
-        let originalTransactionData = {}; 
-        let encryptedData = null; 
-        let signature = null; 
-        let originalHash = null; 
-
-        // Thêm biến để lưu trữ hash sau khi ký và hash sau khi nhận (mô phỏng)
-        let sentHash = null; // Hash được tính trước khi gửi (trong hàm signTransaction)
-        let receivedHash = null; // Hash được tính khi nhận (trong hàm verifyIntegrity)
-
-        const initialTime = 50; 
-        let timeLeft = initialTime; 
-        let timerInterval = null; 
-        
-        let isTampered = false; 
-        let isHacked = false;   
-        let hackType = null;    
-        
-        let hintUsed = false; 
-        let puzzleAttempted = false; 
-        
-        const correctKey = '0123456789abcdef'; 
-        // Khóa công khai và riêng tư mô phỏng cho RSA
-        // Trong game này, chúng ta dùng `correctKey` để mô phỏng cả ký và xác thực
-        // Giả sử có một public key và private key tương ứng
-        const senderPublicKey = 'sender_public_key_mock'; 
-        const senderPrivateKey = 'sender_private_key_mock'; // dùng để ký
-        const receiverPublicKey = 'receiver_public_key_mock'; 
-        const receiverPrivateKey = 'receiver_private_key_mock'; // dùng để giải mã RSA (nếu có)
-
-        // --- Các Phần Tử DOM (Document Object Model) ---
-        const playerNameInput = document.getElementById('playerNameInput'); 
-        const startGameBtn = document.getElementById('startGameBtn'); 
-        const playerNameDisplay = document.getElementById('playerNameDisplay'); 
-        const transactionIdEl = document.getElementById('transactionId');
-        const accountNumberEl = document.getElementById('accountNumber');
-        const amountEl = document.getElementById('amount');
-        const levelDisplayEl = document.getElementById('levelDisplay');
-        const scoreDisplayEl = document.getElementById('scoreDisplay');
-        const comboDisplayEl = document.getElementById('comboDisplay');
-        const upgradeDisplayEl = document.getElementById('upgradeDisplay');
-
-        const timerEl = document.getElementById('timer');
-        const progressEl = document.getElementById('progress');
-        const encryptBtn = document.getElementById('encryptBtn');
-        const signBtn = document.getElementById('signBtn');
-        const verifyBtn = document.getElementById('verifyBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const feedbackEl = document.getElementById('feedback');
-        const upgradeKeyBtn = document.getElementById('upgradeKeyBtn');
-        const decryptSection = document.getElementById('decryptSection');
-        const actionBtn = document.getElementById('actionBtn'); 
-        const skipBtn = document.getElementById('skipBtn');
-        const welcomeModal = document.getElementById('welcomeModal');
-        const puzzleModal = document.getElementById('puzzleModal');
-        const puzzleTextEl = document.getElementById('puzzleText');
-        const puzzleOptionsEl = document.getElementById('puzzleOptions');
-        const puzzleFeedbackEl = document.getElementById('puzzleFeedback');
-        const hintBtn = document.getElementById('hintBtn');
-        const gameOverModal = document.getElementById('gameOverModal');
-        const finalScoreEl = document.getElementById('finalScore');
-        const finalLevelEl = document.getElementById('finalLevel');
-        const finalTransactionsEl = document.getElementById('finalTransactions');
-        const finalPuzzlesEl = document.getElementById('finalPuzzles');
-        const highScoresListEl = document.getElementById('highScoresList'); // Changed from highScores to highScoresList
-        const gameHistoryBodyEl = document.getElementById('gameHistoryBody');
-        const playAgainBtn = document.getElementById('playAgainBtn');
-        const decryptMessage = document.getElementById('decryptMessage');
-
-        // --- Âm Thanh ---
-        const successSound = new Audio('https://freesound.org/data/previews/171/171671_2437358-lq.mp3');
-        const errorSound = new Audio('https://freesound.org/data/previews/395/395535_3232291-lq.mp3');
-        const upgradeSound = new Audio('https://freesound.org/data/previews/320/320655_4764823-lq.mp3');
-        const levelUpSound = new Audio('https://freesound.org/data/previews/387/387139_7077576-lq.mp3');
-        const hackSound = new Audio('https://freesound.org/data/previews/277/277028_4954752-lq.mp3');
-        const rejectSound = new Audio('https://freesound.org/data/previews/266/266914_4654877-lq.mp3'); // Âm thanh từ chối giao dịch
-
-        // --- Khởi Tạo Game ---
-        welcomeModal.style.display = 'flex'; // Hiển thị modal chào mừng khi tải trang
-
-        startGameBtn.addEventListener('click', () => {
-            const name = playerNameInput.value.trim();
-            if (name) {
-                game.playerName = name;
-                playerNameDisplay.textContent = game.playerName;
-                welcomeModal.style.display = 'none';
-                generateTransaction();
-                updateUI();
-            } else {
-                alert('Vui lòng nhập tên của bạn để bắt đầu!');
-            }
-        });
-
-        // --- Logic Game ---
-
-        /**
-         * Tạo một giao dịch mới với khả năng bị tấn công hoặc giả mạo.
-         */
-        function generateTransaction() {
-            const id = Math.random().toString(36).substr(2, 9).toUpperCase();
-            const account = 'ACC' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-            const amount = (Math.random() * (1000 * game.level) + 50).toFixed(2);
-            
-            originalTransactionData = { id, account, amount: parseFloat(amount).toFixed(2) }; 
-            currentTransaction = { ...originalTransactionData }; 
-            originalHash = CryptoJS.SHA256(JSON.stringify(originalTransactionData)).toString(); 
-            
-            isTampered = Math.random() < 0.20 * game.level; 
-            isHacked = Math.random() < 0.25 * game.level;    
-
-            if (isHacked) {
-                const hackTypes = ['double_encrypt', 'wrong_key', 'fake_signature', 'sql_injection']; 
-                hackType = hackTypes[Math.floor(Math.random() * hackTypes.length)];
-            } else {
-                hackType = null;
-            }
-
-            if (isTampered) {
-                currentTransaction.amount = (parseFloat(currentTransaction.amount) + Math.floor(Math.random() * 20 + 10)).toFixed(2);
-                console.log("Giao dịch bị giả mạo số tiền:", originalTransactionData.amount, "->", currentTransaction.amount);
-            }
-
-            if (isHacked) {
-                hackSound.play();
-                if (hackType === 'wrong_key') {
-                    encryptedData = CryptoJS.AES.encrypt(JSON.stringify(originalTransactionData), 'wrongkey12345678', { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') }).toString();
-                    console.log("Hack: Wrong Key Encryption");
-                } else if (hackType === 'double_encrypt') {
-                    let temp = CryptoJS.AES.encrypt(JSON.stringify(originalTransactionData), CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') }).toString();
-                    encryptedData = CryptoJS.AES.encrypt(temp, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') }).toString();
-                    console.log("Hack: Double Encryption");
-                } else if (hackType === 'fake_signature') {
-                    // Để mô phỏng xác thực thất bại, chúng ta sẽ tạo một chữ ký không thể giải mã bằng senderPublicKey
-                    // Ở đây, chúng ta dùng một khóa không liên quan để tạo chữ ký giả mạo
-                    signature = CryptoJS.SHA256(JSON.stringify(originalTransactionData) + 'fake_signing_key_by_hacker').toString(); 
-                    console.log("Hack: Fake Signature");
-                    feedbackEl.textContent = 'Cảnh báo: Hacker tấn công! Chữ ký đã bị giả mạo! Cần giải đố để khôi phục.';
-                    feedbackEl.className = 'error animate-error';
-                } else if (hackType === 'sql_injection') {
-                    currentTransaction.account = originalTransactionData.account + "'; DROP TABLE Users; --"; 
-                    console.log("Hack: SQL Injection", currentTransaction.account);
-                }
-            } else {
-                encryptedData = null; 
-            }
-            
-            if (hackType !== 'fake_signature') { 
-                signature = null; 
-            }
-
-            timeLeft = initialTime; 
-            puzzleAttempted = false; 
-            updateTimer();
-            startTimer();
-            updateUI();
-        }
-
-        /**
-         * Cập nhật giao diện người dùng dựa trên trạng thái hiện tại của game.
-         */
-        function updateUI() {
-            transactionIdEl.textContent = currentTransaction.id;
-            accountNumberEl.textContent = currentTransaction.account;
-            amountEl.textContent = `${currentTransaction.amount} VND`;
-
-            scoreDisplayEl.textContent = game.score;
-            comboDisplayEl.textContent = game.combo;
-            levelDisplayEl.textContent = game.level;
-            upgradeDisplayEl.textContent = `Khóa Cấp ${game.keyLevel} (${game.keyLevel}x)`;
-            playerNameDisplay.textContent = game.playerName;
-            
-            document.body.className = game.level === 2 ? 'level-2' : game.level === 3 ? 'level-3' : '';
-
-            encryptBtn.disabled = isHacked || encryptedData !== null;
-            signBtn.disabled = isHacked || encryptedData === null || signature !== null; 
-            verifyBtn.disabled = isHacked || signature === null; 
-            
-            // nextBtn chỉ được kích hoạt khi không bị hack VÀ đã mã hóa VÀ đã ký VÀ SHA khớp VÀ không có lỗi xác thực/toàn vẹn chưa được xử lý
-            nextBtn.disabled = isHacked || encryptedData === null || signature === null || CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash || (feedbackEl.textContent.includes("Từ chối giao dịch") && feedbackEl.className.includes("error"));
-
-            if (isHacked || (isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash)) {
-                transactionCard.classList.add('hack-effect');
-                decryptSection.classList.remove('hidden');
-                
-                encryptBtn.disabled = true;
-                signBtn.disabled = true;
-                verifyBtn.disabled = true;
-
-                if (hackType === 'fake_signature') {
-                    decryptMessage.textContent = 'Cảnh báo: Hacker tấn công! Chữ ký đã bị giả mạo! Giải câu đố để khôi phục.';
-                    actionBtn.textContent = 'Giải Câu Đố';
-                    actionBtn.onclick = showPuzzle;
-                    actionBtn.disabled = puzzleAttempted;
-                } else if (hackType === 'sql_injection') {
-                    decryptMessage.textContent = 'Cảnh báo: Hacker tấn công! SQL Injection! Dữ liệu tài khoản đã bị thay đổi.';
-                    actionBtn.textContent = 'Làm sạch Dữ liệu';
-                    actionBtn.onclick = handleSqlInjectionHack;
-                    actionBtn.disabled = false; // ENABLE THE BUTTON FOR SQL INJECTION FIX
-                } else if (isHacked && (hackType === 'double_encrypt' || hackType === 'wrong_key')) {
-                    decryptMessage.textContent = `Cảnh báo: Hacker tấn công! (${hackType === 'double_encrypt' ? 'Mã hóa kép' : 'Khóa sai'})! Giải câu đố để khôi phục.`;
-                    actionBtn.textContent = 'Giải Câu Đố';
-                    actionBtn.onclick = showPuzzle;
-                    actionBtn.disabled = puzzleAttempted;
-                } else if (isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash) {
-                    decryptMessage.textContent = `Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! Giao dịch đã bị thay đổi! Giải câu đố để khôi phục.`;
-                    actionBtn.textContent = 'Giải Câu Đố';
-                    actionBtn.onclick = showPuzzle;
-                    actionBtn.disabled = puzzleAttempted;
-                }
-            } else {
-                if (feedbackEl.textContent.includes("Hacker tấn công") || feedbackEl.textContent.includes("Giao dịch bị giả mạo")) {
-                    feedbackEl.textContent = '';
-                }
-                feedbackEl.className = ''; 
-                transactionCard.classList.remove('hack-effect');
-                decryptSection.classList.add('hidden'); 
-            }
-            
-            upgradeKeyBtn.disabled = game.score < 100 || game.keyLevel >= 3;
-        }
-
-        /**
-         * Cập nhật hiển thị thời gian còn lại và thanh tiến độ.
-         */
-        function updateTimer() {
-            timerEl.textContent = Math.ceil(timeLeft); 
-            progressEl.style.width = `${(timeLeft / initialTime) * 100}%`; 
-            if (timeLeft < initialTime / 3) {
-                progressEl.style.backgroundColor = '#ef4444'; 
-            } else if (timeLeft < initialTime / 2) {
-                progressEl.style.backgroundColor = '#facc15'; 
-            } else {
-                progressEl.style.backgroundColor = '#3b82f6'; 
-            }
-        }
-
-        /**
-         * Bắt đầu bộ đếm thời gian cho giao dịch.
-         */
-        function startTimer() {
-            clearInterval(timerInterval);
-            let lastTime = performance.now();
-            function tick(currentTime) {
-                const delta = (currentTime - lastTime) / 1000;
-                timeLeft = Math.max(0, timeLeft - delta);
-                updateTimer();
-                if (timeLeft <= 0) {
-                    feedbackEl.textContent = 'Hết thời gian! Giao dịch thất bại!';
-                    feedbackEl.className = 'error animate-error';
-                    errorSound.play();
-                    endGame();
-                } else {
-                    timerInterval = requestAnimationFrame(tick);
-                }
-                lastTime = currentTime;
-            }
-            timerInterval = requestAnimationFrame(tick);
-        }
-
-        let currentPuzzle = null; 
-
-        /**
-         * Hiển thị modal câu đố để người chơi giải.
-         */
-        function showPuzzle() {
-            if (puzzleAttempted) {
-                puzzleFeedbackEl.textContent = 'Bạn đã trả lời sai câu đố này. Vui lòng bỏ qua giao dịch.';
-                puzzleFeedbackEl.className = 'error';
-                return;
-            }
-
-            currentPuzzle = gamePuzzles[Math.floor(Math.random() * gamePuzzles.length)];
-            puzzleTextEl.textContent = currentPuzzle.text;
-            puzzleOptionsEl.innerHTML = '';
-            hintUsed = false;
-            
-            const shuffledOptions = [...currentPuzzle.options].sort(() => Math.random() - 0.5);
-
-            shuffledOptions.forEach(option => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200';
-                btn.textContent = option;
-                btn.addEventListener('click', () => checkPuzzleAnswer(option, currentPuzzle.answer));
-                puzzleOptionsEl.appendChild(btn);
-            });
-            hintBtn.disabled = game.score < 20 || hintUsed;
-            puzzleModal.style.display = 'flex';
-            puzzleFeedbackEl.textContent = '';
-        }
-
-        /**
-         * Xử lý khi người chơi sử dụng gợi ý.
-         */
-        function useHint() {
-            if (game.score >= 20 && !hintUsed && currentPuzzle && !puzzleAttempted) { 
-                const pointsLost = -20;
-                addScore(pointsLost);
-                hintUsed = true;
-                
-                const wrongOptions = currentPuzzle.options.filter(opt => opt !== currentPuzzle.answer);
-                
-                if (wrongOptions.length > 0) {
-                    const optionToDisable = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
-                    const buttons = puzzleOptionsEl.querySelectorAll('button');
-                    buttons.forEach(btn => {
-                        if (btn.textContent === optionToDisable) {
-                            btn.disabled = true;
-                            btn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                            btn.classList.add('bg-gray-500', 'cursor-not-allowed');
-                        }
-                    });
-                    puzzleFeedbackEl.textContent = `Một lựa chọn sai đã bị loại bỏ! (${pointsLost} điểm)`;
-                    puzzleFeedbackEl.className = 'feedback';
-                }
-                updateUI();
-            }
-        }
-
-        /**
-         * Kiểm tra câu trả lời của người chơi cho câu đố.
-         * @param {string} selected - Lựa chọn của người chơi.
-         * @param {string} answer - Câu trả lời đúng.
-         */
-        function checkPuzzleAnswer(selected, answer) {
-            if (puzzleAttempted) { 
-                return; 
-            }
-            puzzleAttempted = true; 
-            
-            const optionButtons = puzzleOptionsEl.querySelectorAll('button');
-            optionButtons.forEach(btn => btn.disabled = true);
-            hintBtn.disabled = true; 
-
-            if (selected === answer) {
-                puzzleFeedbackEl.textContent = 'Trả lời đúng! Giao dịch đang được khôi phục...';
-                puzzleFeedbackEl.className = 'feedback animate-success';
-                setTimeout(() => { 
-                    puzzleModal.style.display = 'none';
-                    let pointsGained = 0;
-                    try {
-                        if (hackType === 'double_encrypt') {
-                            const bytes1 = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
-                            const tempDecrypted = bytes1.toString(CryptoJS.enc.Utf8);
-                            const bytes2 = CryptoJS.AES.decrypt(tempDecrypted, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
-                            currentTransaction = JSON.parse(bytes2.toString(CryptoJS.enc.Utf8));
-                            encryptedData = null; 
-                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
-                            feedbackEl.textContent = `Giải mã kép thành công! Giao dịch đã được khôi phục! (+${pointsGained} điểm)`;
-                        } else if (hackType === 'wrong_key') {
-                            const bytes = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
-                            currentTransaction = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-                            encryptedData = null; 
-                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
-                            feedbackEl.textContent = `Giải mã khóa sai thành công! Giao dịch đã được khôi phục! (+${pointsGained} điểm)`;
-                        } else if (hackType === 'fake_signature') { 
-                            signature = null; // Vô hiệu hóa chữ ký giả mạo
-                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
-                            feedbackEl.textContent = `Chữ ký giả mạo đã được phát hiện và vô hiệu hóa! Bạn có thể ký lại giao dịch. (+${pointsGained} điểm)`;
-                        } else if (isTampered) { 
-                            currentTransaction = { ...originalTransactionData };
-                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
-                            feedbackEl.textContent = `Giao dịch đã được khôi phục về trạng thái gốc! (+${pointsGained} điểm)`;
-                            isTampered = false; 
-                        }
-
-                        isHacked = false; 
-                        hackType = null; 
-                        decryptSection.classList.add('hidden'); 
-                        transactionCard.classList.remove('hack-effect'); 
-                        
-                        addScore(pointsGained);
-                        incrementPuzzlesSolved();
-                        successSound.play(); 
-                    } catch (e) {
-                        console.error("Lỗi giải mã/khôi phục:", e);
-                        const pointsLost = -20;
-                        feedbackEl.textContent = `Lỗi trong quá trình khôi phục giao dịch! Vui lòng thử lại! (${pointsLost} điểm)`;
-                        feedbackEl.className = 'error animate-error';
-                        errorSound.play();
-                        addScore(pointsLost);
-                    }
-                    updateUI(); 
-                }, 1000); 
-            } else {
-                const pointsLost = -10;
-                puzzleFeedbackEl.textContent = `Trả lời sai! Giao dịch này không thể khôi phục bằng cách giải đố nữa. Vui lòng bỏ qua giao dịch. (${pointsLost} điểm)`;
-                puzzleFeedbackEl.className = 'error animate-error';
-                errorSound.play();
-                resetCombo();
-                addScore(pointsLost);
-                updateUI();
-            }
-        }
-
-        /**
-         * Xử lý trường hợp tấn công SQL Injection.
-         * Khôi phục số tài khoản về giá trị ban đầu.
-         */
-        function handleSqlInjectionHack() {
-            currentTransaction.account = originalTransactionData.account; 
-            isHacked = false; 
-            hackType = null;
-            decryptSection.classList.add('hidden');
-            transactionCard.classList.remove('hack-effect');
-            
-            const pointsGained = 40 * game.level * game.keyLevel * (game.combo + 1);
-            feedbackEl.textContent = `Dữ liệu SQL Injection đã được làm sạch! Giao dịch an toàn trở lại. (+${pointsGained} điểm)`;
-            feedbackEl.className = 'feedback animate-success';
-            addScore(pointsGained);
-            incrementPuzzlesSolved();
-            successSound.play();
-            updateUI();
-        }
-
-        /**
-         * Bỏ qua giao dịch hiện tại (mất điểm).
-         */
-        function skipTransaction() {
-            const pointsLost = -50;
-            addScore(pointsLost);
-            resetCombo();
-            feedbackEl.textContent = `Đã bỏ qua giao dịch, (${pointsLost} điểm)!`;
-            feedbackEl.className = 'error animate-error';
-            errorSound.play();
-            puzzleModal.style.display = 'none'; 
-            nextTransaction();
-        }
-
-        /**
-         * Thực hiện mã hóa AES cho giao dịch.
-         */
-        function encryptTransaction() {
-            if (isHacked || (isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash)) { 
-                feedbackEl.textContent = 'Không thể mã hóa khi giao dịch đang bị tấn công hoặc giả mạo! Giải quyết vấn đề trước.';
-                feedbackEl.className = 'error animate-error';
-                errorSound.play();
-                return;
-            }
-            const key = CryptoJS.enc.Utf8.parse(correctKey);
-            const iv = CryptoJS.enc.Utf8.parse('abcdef9876543210');
-            const data = JSON.stringify(currentTransaction); 
-            encryptedData = CryptoJS.AES.encrypt(data, key, { iv: iv }).toString();
-            
-            const pointsGained = 10 * game.level * game.keyLevel * (game.combo + 1);
-            feedbackEl.textContent = `Giao dịch đã được mã hóa thành công bằng AES! (+${pointsGained} điểm)`;
-            feedbackEl.className = 'feedback animate-success';
-            addScore(pointsGained);
-            incrementCombo();
-            updateUI();
-            successSound.play();
-        }
-
-        /**
-         * Thực hiện ký RSA cho giao dịch (mô phỏng).
-         * Thêm khả năng lỗi xác thực ở đây.
-         */
-        function signTransaction() {
-            if (isHacked || (isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash)) { 
-                feedbackEl.textContent = 'Không thể ký khi giao dịch đang bị tấn công hoặc giả mạo! Giải quyết vấn đề trước.';
-                feedbackEl.className = 'error animate-error';
-                errorSound.play();
-                return;
-            }
-            
-            // Tính hash của dữ liệu gốc trước khi ký (bên gửi)
-            const dataToSign = JSON.stringify(currentTransaction);
-            sentHash = CryptoJS.SHA256(dataToSign).toString();
-
-            // Mô phỏng việc ký bằng khóa riêng tư của người gửi
-            // Để mô phỏng lỗi xác thực, đôi khi sẽ dùng senderPublicKey để ký, điều này là SAI
-            // Một chữ ký RSA được tạo ra bằng PRIVATE KEY của người gửi
-            // Một chữ ký RSA được xác thực bằng PUBLIC KEY của người gửi
-            if (Math.random() < 0.15) { // 15% khả năng tạo chữ ký lỗi để xác thực thất bại
-                signature = CryptoJS.SHA256(dataToSign + receiverPublicKey).toString(); // Dùng khóa sai để ký
-                feedbackEl.textContent = `Cảnh báo: Lỗi hệ thống khi tạo chữ ký! Chữ ký không hợp lệ!`;
-                feedbackEl.className = 'error animate-error';
-                errorSound.play();
-                signature = null; // Đặt lại signature về null để không cho verify
-                resetCombo();
-                updateUI();
-                return;
-            } else {
-                signature = CryptoJS.SHA256(dataToSign + senderPrivateKey).toString(); // Ký đúng bằng khóa riêng tư của người gửi
-            }
-            
-            const pointsGained = 15 * game.level * game.keyLevel * (game.combo + 1);
-            feedbackEl.textContent = `Giao dịch đã được ký thành công bằng RSA! (+${pointsGained} điểm)`;
-            feedbackEl.className = 'feedback animate-success';
-            addScore(pointsGained);
-            incrementCombo();
-            updateUI();
-            successSound.play();
-        }
-
-        /**
-         * Kiểm tra tính toàn vẹn của giao dịch bằng SHA-256.
-         * Hiển thị rõ hash gốc và hash nhận được nếu không khớp.
-         * Admin từ chối giao dịch nếu toàn vẹn thất bại.
-         */
-        function verifyIntegrity() {
-            if (isHacked) { 
-                feedbackEl.textContent = 'Không thể kiểm tra tính toàn vẹn khi giao dịch đang bị tấn công! Giải quyết vấn đề trước.';
-                feedbackEl.className = 'error animate-error';
-                errorSound.play();
-                return;
-            }
-
-            // Giải mã bản mã nhận được (mô phỏng, thực tế là giải mã bên nhận)
-            let decryptedTransactionData;
-            try {
-                const bytes = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
-                decryptedTransactionData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-            } catch (e) {
-                feedbackEl.textContent = `Lỗi giải mã! Không thể kiểm tra tính toàn vẹn. Giao dịch bị từ chối!`;
-                feedbackEl.className = 'error animate-error';
-                errorSound.play();
-                resetCombo();
-                // Admin từ chối giao dịch
-                nextBtn.disabled = true; // Không cho phép sang giao dịch tiếp theo
-                return;
-            }
-            
-            // Tính hash của dữ liệu đã giải mã (bên nhận)
-            receivedHash = CryptoJS.SHA256(JSON.stringify(decryptedTransactionData)).toString();
-            
-            // Kiểm tra chữ ký số bằng khóa công khai của người gửi
-            // Trong mô phỏng này, chúng ta sẽ kiểm tra xem chữ ký có khớp với hash và khóa riêng tư của người gửi không
-            // (Thực tế là giải mã chữ ký bằng khóa công khai của người gửi và so sánh với hash của dữ liệu)
-            const expectedSignature = CryptoJS.SHA256(JSON.stringify(originalTransactionData) + senderPrivateKey).toString(); 
-            const isSignatureValid = (signature === expectedSignature);
-
-            if (!isSignatureValid) {
-                feedbackEl.textContent = `Xác thực chữ ký thất bại! Chữ ký không hợp lệ! Giao dịch bị từ chối!`;
-                feedbackEl.className = 'error animate-error';
-                errorSound.play();
-                resetCombo();
-                // Admin từ chối giao dịch
-                nextBtn.disabled = true; // Không cho phép sang giao dịch tiếp theo
-                return;
-            }
-
-            // So sánh hash nhận được với hash gốc
-            if (receivedHash === originalHash) {
-                const pointsGained = 25 * game.level * game.keyLevel * (game.combo + 1);
-                feedbackEl.textContent = `Kiểm tra toàn vẹn thành công bằng SHA! Chữ ký hợp lệ. (+${pointsGained} điểm)`;
-                feedbackEl.className = 'feedback animate-success';
-                addScore(pointsGained);
-                incrementCombo();
-                successSound.play();
-                nextBtn.disabled = false; 
-            } else {
-                feedbackEl.textContent = `❌ **TOÀN VẸN THẤT BẠI! GIAO DỊCH BỊ TỪ CHỐI!**\nHash gốc: ${originalHash}\nHash nhận được: ${receivedHash}`;
-                feedbackEl.className = 'error animate-error';
-                errorSound.play();
-                rejectSound.play(); // Chơi âm thanh từ chối
-                resetCombo();
-                // Admin từ chối giao dịch
-                nextBtn.disabled = true; // Không cho phép sang giao dịch tiếp theo
-            }
-        }
-
-        /**
-         * Nâng cấp cấp độ khóa, giúp tăng điểm số.
-         */
-        function upgradeKey() {
-            if (game.score >= 100 && game.keyLevel < 3) { 
-                const pointsLost = -100;
-                addScore(pointsLost);
-                upgradeKeyLevel();
-                feedbackEl.textContent = `Đã nâng cấp khóa lên cấp ${game.keyLevel}! (Hệ số điểm: ${game.keyLevel}x, ${pointsLost} điểm)`;
-                feedbackEl.className = 'feedback animate-success';
-                upgradeSound.play(); 
-                updateUI(); 
-            }
-        }
-
-        /**
-         * Kết thúc trò chơi và hiển thị bảng xếp hạng.
-         */
-        function endGame() {
-            clearInterval(timerInterval); 
-            saveGameResult();
-            
-            finalScoreEl.textContent = game.score;
-            finalLevelEl.textContent = game.level;
-            finalTransactionsEl.textContent = game.transactionsCompleted;
-            finalPuzzlesEl.textContent = game.puzzlesSolved;
-
-            // Sort highScores in descending order and limit to 5
-            const sortedHighScores = getHighScores().sort((a, b) => b.score - a.score).slice(0, 5);
-            highScoresListEl.innerHTML = sortedHighScores.map(hs => `<li>${hs.name} - ${hs.score} điểm (Cấp ${hs.level}) - ${hs.date}</li>`).join('');
-            
-            gameHistoryBodyEl.innerHTML = '';
-            getGameHistory().slice().reverse().forEach(entry => {
-                const row = gameHistoryBodyEl.insertRow();
-                row.insertCell().textContent = entry.name;
-                row.insertCell().textContent = entry.score;
-                row.insertCell().textContent = entry.level;
-                row.insertCell().textContent = entry.transactionsCompleted;
-                row.insertCell().textContent = entry.puzzlesSolved;
-                row.insertCell().textContent = entry.date;
-            });
-
-
-            gameOverModal.style.display = 'flex'; 
-            disableAllButtons(); 
-        }
-
-        /**
-         * Đặt lại trò chơi về trạng thái ban đầu để chơi lại.
-         */
-        function resetGame() {
-            resetGameData();
-            gameOverModal.style.display = 'none'; 
-            welcomeModal.style.display = 'flex'; 
-            disableAllButtons(); 
-        }
-
-        /**
-         * Vô hiệu hóa tất cả các nút hành động trong game.
-         */
-        function disableAllButtons() {
-            encryptBtn.disabled = true;
-            signBtn.disabled = true;
-            verifyBtn.disabled = true;
-            nextBtn.disabled = true;
-            upgradeKeyBtn.disabled = true;
-            actionBtn.disabled = true;
-            skipBtn.disabled = true;
-            hintBtn.disabled = true;
-        }
-
-        /**
-         * Chuyển sang giao dịch tiếp theo.
-         */
-        function nextTransaction() {
-            clearInterval(timerInterval); 
-            game.transactionCount++;
-            incrementTransactionsCompleted();
-            
-            if (game.transactionCount >= 3) {
-                levelUp();
-                game.transactionCount = 0;
-                levelUpSound.play(); 
-                if (game.level > 3) {
-                    endGame();
-                    return;
-                }
-            }
-            encryptedData = null;
-            signature = null;
-            originalHash = null;
-            currentTransaction = {}; 
-            originalTransactionData = {}; 
-            isTampered = false; 
-            isHacked = false;
-            hackType = null;
-            puzzleAttempted = false; 
-            sentHash = null; // Reset
-            receivedHash = null; // Reset
-            generateTransaction(); 
-            updateUI(); 
-        }
-
-        // --- Gắn Sự Kiện vào các Nút ---
-        encryptBtn.addEventListener('click', encryptTransaction);
-        signBtn.addEventListener('click', signTransaction);
-        verifyBtn.addEventListener('click', verifyIntegrity);
-        nextBtn.addEventListener('click', nextTransaction);
-        upgradeKeyBtn.addEventListener('click', upgradeKey);
-        skipBtn.addEventListener('click', skipTransaction);
-        hintBtn.addEventListener('click', useHint); 
-        playAgainBtn.addEventListener('click', resetGame);
-    </script>
+    <script src="gameData.js"></script>
+    <script src="puzzles.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
