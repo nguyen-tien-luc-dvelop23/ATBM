@@ -144,7 +144,7 @@ const gamePuzzles = [
     // Câu hỏi 22
     {
         text: 'Độ dài khóa phổ biến cho RSA để đảm bảo an toàn hiện nay là bao nhiêu bit?',
-        answer: '2048 bit trở lên',
+        answer: '1024 bit',
         options: ['128 bit', '512 bit', '1024 bit', '2048 bit trở lên']
     },
     // Câu hỏi 23
