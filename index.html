@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Hệ Thống Mã Hóa Ngân Hàng</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: linear-gradient(to bottom, #1e3a8a, #3b82f6); transition: background 1s; }
+        .transaction-card { max-width: 600px; margin: 20px auto; background: rgba(255, 255, 255, 0.95); }
+        .feedback { color: #22c55e; }
+        .error { color: #ef4444; }
+        .animate-success { animation: flash 0.5s ease-in-out; }
+        .animate-error { animation: shake 0.4s ease-in-out; }
+        .hack-effect { animation: hack 1s infinite; }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        @keyframes hack { 0% { filter: brightness(100%); } 50% { filter: brightness(70%); } 100% { filter: brightness(100%); } }
+        .progress-bar { height: 20px; background-color: #e5e7eb; border-radius: 10px; overflow: hidden; }
+        .progress { height: 100%; background-color: #3b82f6; transition: width 0.1s linear; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; }
+        .modal-content { background: white; margin: 10% auto; padding: 20px; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .option-btn { width: 100%; margin: 5px 0; }
+        .close-btn { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; }
+        .level-2 { background: linear-gradient(to bottom, #4c1d95, #8b5cf6); }
+        .level-3 { background: linear-gradient(to bottom, #7c2d12, #f97316); }
+    </style>
+</head>
+<body>
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('welcomeModal').style.display='none'">×</span>
+            <h2 class="text-xl font-bold mb-4">Chào Mừng Đến Với Hệ Thống Mã Hóa Ngân Hàng!</h2>
+            <p>Nhiệm vụ của Bạn là bảo vệ giao dịch ngân hàng:</p>
+            <ul class="list-disc pl-5 mb-4">
+                <li>Mã hóa dữ liệu bằng AES.</li>
+                <li>Xác thực giao dịch bằng RSA.</li>
+                <li>Kiểm tra tính toàn vẹn bằng SHA.</li>
+                <li><strong>Giải mã</strong>: Khi bị hack, giải câu đố để tìm khóa đúng và khôi phục giao dịch.</li>
+            </ul>
+            <button id="closeModal" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Bắt Đầu</button>
+        </div>
+    </div>
+    <div id="puzzleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('puzzleModal').style.display='none'">×</span>
+            <h2 class="text-xl font-bold mb-4">Câu Đố Giải Mã</h2>
+            <p id="puzzleText" class="mb-4"></p>
+            <div id="puzzleOptions"></div>
+            <button id="hintBtn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mt-4" disabled>Dùng Gợi Ý (20 điểm)</button>
+            <div id="puzzleFeedback" class="mt-4"></div>
+        </div>
+    </div>
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Trò Chơi Kết Thúc!</h2>
+            <p>Điểm số cuối cùng: <span id="finalScore"></span></p>
+            <p>Cấp độ đạt được: <span id="finalLevel"></span></p>
+            <h3 class="text-lg font-semibold mt-4">Bảng Xếp Hạng</h3>
+            <ul id="highScores" class="list-decimal pl-5"></ul>
+            <button id="playAgainBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-4">Chơi Lại</button>
+        </div>
+    </div>
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-4 text-white">Hệ Thống Mã Hóa Ngân Hàng</h1>
+        <div id="gameStatus" class="text-center mb-4 text-white">
+            <p>Cấp độ: <span id="level">1</span> | Điểm: <span id="score">0</span> | Combo: <span id="combo">0</span>x | Nâng cấp: <span id="upgrade">Khóa Cơ Bản (1x)</span></p>
+            <p>Thời gian còn lại: <span id="timer">50</span>s</p>
+            <div class="progress-bar mt-2"><div id="progress" class="progress"></div></div>
+        </div>
+        <div id="transactionCard" class="transaction-card p-6 rounded shadow">
+            <h2 class="text-xl font-semibold mb-4">Giao Dịch</h2>
+            <p><strong>Mã Giao Dịch:</strong> <span id="transactionId"></span></p>
+            <p><strong>Số Tài Khoản:</strong> <span id="accountNumber"></span></p>
+            <p><strong>Số Tiền:</strong> <span id="amount"></span></p>
+            <div id="decryptSection" class="mt-4 hidden">
+                <p class="font-semibold">Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! (Hash: <span id="tamperedHashDisplay"></span>) Giao dịch đã bị thay đổi! Bỏ qua hoặc cố gắng khôi phục.</p>
+                <button id="solvePuzzleBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 mr-2">Giải Câu Đố</button>
+                <button id="skipBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Bỏ Qua (Mất 50 điểm)</button>
+            </div>
+            <div class="mt-4">
+                <button id="encryptBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">Mã Hóa (AES)</button>
+                <button id="signBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-2" disabled>Ký (RSA)</button>
+                <button id="verifyBtn" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 mr-2" disabled>Kiểm Tra Toàn Vẹn (SHA)</button>
+                <button id="nextBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600" disabled>Giao Dịch Tiếp Theo</button>
+            </div>
+            <div id="feedback" class="mt-4"></div>
+            <div class="mt-4">
+                <button id="upgradeKeyBtn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600" disabled>Nâng Cấp Khóa (100 điểm)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mảng chứa các câu đố của trò chơi
+        const gamePuzzles = [
+            {
+                text: 'Khóa AES mặc định của hệ thống bao gồm 16 ký tự đầu tiên của bảng chữ cái thập lục phân (hexadecimal) theo thứ tự tăng dần. Khóa đó là gì?',
+                answer: '0123456789abcdef',
+                options: ['abcdef0123456789', 'fedcba9876543210', '0123456789abcdef', 'aabbccddeeff0011']
+            },
+            {
+                text: 'Hệ thống RSA sử dụng một cặp khóa công khai và riêng tư. Khóa công khai dùng để mã hóa, khóa riêng tư dùng để giải mã. Nếu chữ ký số bị làm giả, khóa nào bị lộ?',
+                answer: 'Khóa riêng tư',
+                options: ['Khóa công khai', 'Khóa riêng tư', 'Khóa đối xứng', 'Cả hai']
+            },
+            {
+                text: 'Chức năng băm SHA-256 tạo ra một chuỗi băm có độ dài cố định. Nếu một bit dữ liệu thay đổi, điều gì xảy ra với chuỗi băm?',
+                answer: 'Chuỗi băm sẽ thay đổi đáng kể',
+                options: ['Chuỗi băm sẽ không thay đổi', 'Chuỗi băm sẽ thay đổi đáng kể', 'Chỉ một vài bit sẽ thay đổi', 'Không thể dự đoán được']
+            },
+            {
+                text: 'Trong mã hóa kép (double encryption), dữ liệu được mã hóa hai lần. Để giải mã đúng, bạn phải áp dụng quá trình nào?',
+                answer: 'Giải mã hai lần theo thứ tự ngược lại',
+                options: ['Giải mã một lần', 'Giải mã hai lần theo thứ tự ban đầu', 'Giải mã hai lần theo thứ tự ngược lại', 'Không cần giải mã']
+            },
+            {
+                text: 'Mã PIN ngân hàng mặc định cho tài khoản mới thường là 8 số 0. Nếu khóa giải mã liên quan đến mã PIN này, hãy cung cấp 16 ký tự khóa bằng cách lặp lại 8 số 0 hai lần.',
+                answer: '0000000000000000',
+                options: ['0000000012345678', '0000000000000000', '1234567800000000', '8765432100000000']
+            }
+        ];
+
+        // Trạng thái trò chơi
+        let level = 1;
+        let score = 0;
+        let transactionCount = 0;
+        let combo = 0;
+        let currentTransaction = {};
+        let originalTransactionData = {}; // Lưu trữ dữ liệu giao dịch gốc, chưa bị giả mạo
+        let encryptedData = null;
+        let signature = null;
+        let originalHash = null;
+        const initialTime = 50; // Thời gian mặc định cho mỗi giao dịch
+        let timeLeft = initialTime; 
+        let timerInterval = null;
+        let keyLevel = 1;
+        let isTampered = false; // Giao dịch bị thay đổi nội dung (tiền,...)
+        let isHacked = false;   // Giao dịch bị tấn công kỹ thuật (khóa sai, mã hóa kép, chữ ký giả)
+        let hackType = null;
+        let hintUsed = false;
+        const correctKey = '0123456789abcdef'; // Khóa AES cố định cho các tác vụ mã hóa/giải mã
+
+        // Các phần tử DOM
+        const transactionIdEl = document.getElementById('transactionId');
+        const accountNumberEl = document.getElementById('accountNumber');
+        const amountEl = document.getElementById('amount');
+        const levelEl = document.getElementById('level');
+        const scoreEl = document.getElementById('score');
+        const comboEl = document.getElementById('combo');
+        const timerEl = document.getElementById('timer');
+        const progressEl = document.getElementById('progress');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const signBtn = document.getElementById('signBtn');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const feedbackEl = document.getElementById('feedback');
+        const upgradeKeyBtn = document.getElementById('upgradeKeyBtn');
+        const decryptSection = document.getElementById('decryptSection');
+        const solvePuzzleBtn = document.getElementById('solvePuzzleBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const welcomeModal = document.getElementById('welcomeModal');
+        const puzzleModal = document.getElementById('puzzleModal');
+        const puzzleTextEl = document.getElementById('puzzleText');
+        const puzzleOptionsEl = document.getElementById('puzzleOptions');
+        const puzzleFeedbackEl = document.getElementById('puzzleFeedback');
+        const hintBtn = document.getElementById('hintBtn');
+        const closeModalBtn = document.getElementById('closeModal');
+        const transactionCard = document.getElementById('transactionCard');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreEl = document.getElementById('finalScore');
+        const finalLevelEl = document.getElementById('finalLevel');
+        const highScoresEl = document.getElementById('highScores');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const tamperedHashDisplay = document.getElementById('tamperedHashDisplay');
+
+        // Âm thanh
+        const successSound = new Audio('https://freesound.org/data/previews/171/171671_2437358-lq.mp3');
+        const errorSound = new Audio('https://freesound.org/data/previews/395/395535_3232291-lq.mp3');
+        const upgradeSound = new Audio('https://freesound.org/data/previews/320/320655_4764823-lq.mp3');
+        const levelUpSound = new Audio('https://freesound.org/data/previews/387/387139_7077576-lq.mp3');
+
+        // Lưu trữ bảng xếp hạng
+        let highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
+
+        // Hiển thị modal chào mừng
+        welcomeModal.style.display = 'block';
+        closeModalBtn.addEventListener('click', () => {
+            welcomeModal.style.display = 'none';
+            generateTransaction();
+            updateUI();
+        });
+
+        // Tạo giao dịch mới
+        function generateTransaction() {
+            const id = Math.random().toString(36).substr(2, 9);
+            const account = 'ACC' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+            const amount = (Math.random() * (1000 * level)).toFixed(2);
+            
+            // Lưu trữ dữ liệu giao dịch gốc trước khi có bất kỳ sự giả mạo/tấn công nào
+            originalTransactionData = { id, account, amount: parseFloat(amount).toFixed(2) }; 
+            currentTransaction = { ...originalTransactionData }; // Bắt đầu với một bản sao
+
+            originalHash = CryptoJS.SHA256(JSON.stringify(originalTransactionData)).toString(); // Băm dữ liệu gốc
+            
+            // Xác định khả năng giả mạo hoặc tấn công dựa trên cấp độ
+            isTampered = Math.random() < 0.25 * level; 
+            isHacked = Math.random() < 0.2 * level;    
+
+            // Nếu bị hack, xác định loại hack
+            if (isHacked) {
+                const hackTypes = ['double_encrypt', 'wrong_key', 'fake_signature'];
+                hackType = hackTypes[Math.floor(Math.random() * hackTypes.length)];
+            } else {
+                hackType = null;
+            }
+
+            // Áp dụng giả mạo nếu được chọn
+            if (isTampered) {
+                // Tăng số tiền một cách đáng kể để dễ nhận biết
+                currentTransaction.amount = (parseFloat(currentTransaction.amount) + Math.random() * 10 + 5).toFixed(2); 
+            }
+
+            // Áp dụng hiệu ứng hack
+            if (isHacked) {
+                if (hackType === 'wrong_key') {
+                    // Mã hóa bằng khóa sai
+                    encryptedData = CryptoJS.AES.encrypt(JSON.stringify(originalTransactionData), 'wrongkey12345678', { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') }).toString();
+                } else if (hackType === 'double_encrypt') {
+                    // Mã hóa hai lần bằng khóa đúng
+                    let temp = CryptoJS.AES.encrypt(JSON.stringify(originalTransactionData), CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') }).toString();
+                    encryptedData = CryptoJS.AES.encrypt(temp, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') }).toString();
+                } else if (hackType === 'fake_signature') {
+                    // Tạo một chữ ký giả (ví dụ: băm của một giao dịch đã sửa đổi hoặc một chuỗi ngẫu nhiên)
+                    signature = CryptoJS.SHA256(JSON.stringify({ ...originalTransactionData, amount: (parseFloat(originalTransactionData.amount) + 999).toFixed(2) }) + 'fake_secret').toString();
+                }
+            } else {
+                encryptedData = null; // Đảm bảo không còn dữ liệu mã hóa sót lại từ các hack trước
+            }
+            
+            signature = null; // Luôn đặt lại chữ ký, nó được tạo bởi người chơi
+            timeLeft = initialTime; // Thời gian cố định 50 giây cho mỗi giao dịch
+            updateTimer();
+            startTimer();
+            updateUI();
+        }
+
+        // Cập nhật giao diện
+        function updateUI() {
+            // Hiển thị giao dịch hiện tại (có thể là gốc hoặc đã bị giả mạo)
+            transactionIdEl.textContent = currentTransaction.id;
+            accountNumberEl.textContent = currentTransaction.account;
+            amountEl.textContent = `${currentTransaction.amount} VND`;
+
+            // Trạng thái nút
+            encryptBtn.disabled = isHacked || encryptedData !== null;
+            signBtn.disabled = isHacked || encryptedData === null || signature !== null; 
+            verifyBtn.disabled = isHacked || signature === null; 
+            
+            // Nút "Giao Dịch Tiếp Theo" chỉ được bật nếu quá trình hoàn tất và không bị hack
+            nextBtn.disabled = isHacked || encryptedData === null || signature === null || CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash;
+
+            // Phản hồi và tín hiệu trực quan cho việc hack/giả mạo
+            if (isHacked) {
+                feedbackEl.textContent = `Cảnh báo: Hacker tấn công! (${hackType === 'double_encrypt' ? 'Mã hóa kép' : hackType === 'wrong_key' ? 'Khóa sai' : 'Chữ ký giả mạo'})!`;
+                feedbackEl.className = 'error animate-error';
+                transactionCard.classList.add('hack-effect');
+                decryptSection.classList.remove('hidden'); // Hiển thị phần giải mã nếu bị hack
+                tamperedHashDisplay.textContent = CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString().substr(0, 8) + '...';
+                // Vô hiệu hóa các nút luồng bình thường nếu bị hack
+                encryptBtn.disabled = true;
+                signBtn.disabled = true;
+                verifyBtn.disabled = true;
+            } else if (isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash) {
+                // Nếu chỉ bị giả mạo (chưa phải hack) và xác minh thất bại
+                feedbackEl.textContent = 'Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! Giao dịch đã bị thay đổi! Bỏ qua hoặc Giải Câu Đố để khôi phục.';
+                feedbackEl.className = 'error animate-error';
+                decryptSection.classList.remove('hidden'); // Hiển thị phần giải mã để người chơi chọn khôi phục
+                tamperedHashDisplay.textContent = CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString().substr(0, 8) + '...';
+                // Vô hiệu hóa các nút luồng bình thường
+                encryptBtn.disabled = true;
+                signBtn.disabled = true;
+                verifyBtn.disabled = true;
+            } else {
+                // Xóa phản hồi liên quan đến hack/giả mạo nếu không bị hack/giả mạo nữa
+                if (feedbackEl.textContent.includes("Hacker tấn công") || feedbackEl.textContent.includes("Giao dịch bị giả mạo")) {
+                    feedbackEl.textContent = '';
+                }
+                feedbackEl.className = ''; // Xóa lớp lỗi
+                transactionCard.classList.remove('hack-effect');
+                decryptSection.classList.add('hidden'); // Ẩn phần giải mã nếu không bị hack
+            }
+            
+            upgradeKeyBtn.disabled = score < 100 || keyLevel >= 3;
+            scoreEl.textContent = score;
+            comboEl.textContent = combo;
+            levelEl.textContent = level;
+            document.getElementById('upgrade').textContent = `Khóa Cấp ${keyLevel} (${keyLevel}x)`;
+            document.body.className = level === 2 ? 'level-2' : level === 3 ? 'level-3' : '';
+        }
+
+        // Cập nhật thanh thời gian
+        function updateTimer() {
+            timerEl.textContent = Math.ceil(timeLeft); 
+            progressEl.style.width = `${(timeLeft / initialTime) * 100}%`; // Luôn chia cho initialTime (50)
+        }
+
+        // Bắt đầu bộ đếm thời gian
+        function startTimer() {
+            clearInterval(timerInterval);
+            let lastTime = performance.now();
+            function tick(currentTime) {
+                const delta = (currentTime - lastTime) / 1000;
+                timeLeft = Math.max(0, timeLeft - delta);
+                updateTimer();
+                if (timeLeft <= 0) {
+                    feedbackEl.textContent = 'Hết thời gian! Trò chơi kết thúc!';
+                    feedbackEl.className = 'error animate-error';
+                    errorSound.play();
+                    endGame();
+                } else {
+                    timerInterval = requestAnimationFrame(tick);
+                }
+                lastTime = currentTime;
+            }
+            timerInterval = requestAnimationFrame(tick);
+        }
+
+        let currentPuzzle = null; // Lưu trữ câu đố hiện tại đang được hiển thị
+
+        // Hiển thị câu đố
+        function showPuzzle() {
+            currentPuzzle = gamePuzzles[Math.floor(Math.random() * gamePuzzles.length)];
+            puzzleTextEl.textContent = currentPuzzle.text;
+            puzzleOptionsEl.innerHTML = '';
+            hintUsed = false;
+            
+            // Xáo trộn các lựa chọn
+            const shuffledOptions = [...currentPuzzle.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600';
+                btn.textContent = option;
+                btn.addEventListener('click', () => checkPuzzleAnswer(option, currentPuzzle.answer));
+                puzzleOptionsEl.appendChild(btn);
+            });
+            hintBtn.disabled = score < 20 || hintUsed;
+            puzzleModal.style.display = 'block';
+            puzzleFeedbackEl.textContent = '';
+        }
+
+        // Sử dụng gợi ý
+        function useHint() {
+            if (score >= 20 && !hintUsed && currentPuzzle) {
+                score -= 20;
+                hintUsed = true;
+                const wrongOptions = currentPuzzle.options.filter(opt => opt !== currentPuzzle.answer);
+                
+                // Vô hiệu hóa một lựa chọn sai ngẫu nhiên
+                if (wrongOptions.length > 0) {
+                    const optionToDisable = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+                    const buttons = puzzleOptionsEl.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        if (btn.textContent === optionToDisable) {
+                            btn.disabled = true;
+                            btn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                            btn.classList.add('bg-gray-500');
+                        }
+                    });
+                    puzzleFeedbackEl.textContent = 'Một lựa chọn sai đã bị loại bỏ!';
+                    puzzleFeedbackEl.className = 'feedback';
+                }
+                updateUI();
+            }
+        }
+
+        // Kiểm tra câu trả lời câu đố
+        function checkPuzzleAnswer(selected, answer) {
+            if (selected === answer) {
+                puzzleModal.style.display = 'none';
+                
+                // Xử lý các loại hack khác nhau sau khi giải đố thành công
+                try {
+                    if (hackType === 'double_encrypt') {
+                        // Giải mã lần đầu
+                        const bytes1 = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
+                        const tempDecrypted = bytes1.toString(CryptoJS.enc.Utf8);
+                        
+                        // Giải mã lần thứ hai
+                        const bytes2 = CryptoJS.AES.decrypt(tempDecrypted, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
+                        currentTransaction = JSON.parse(bytes2.toString(CryptoJS.enc.Utf8));
+                        encryptedData = null; // Đặt lại dữ liệu mã hóa để cho phép luồng bình thường
+                        
+                        feedbackEl.textContent = `Giải mã kép thành công! Giao dịch đã được khôi phục!`;
+                        feedbackEl.className = 'feedback animate-success';
+                    } else if (hackType === 'wrong_key') {
+                        // Giải mã bằng khóa đúng
+                        const bytes = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
+                        currentTransaction = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+                        encryptedData = null; // Đặt lại dữ liệu mã hóa
+                        
+                        feedbackEl.textContent = `Giải mã khóa sai thành công! Giao dịch đã được khôi phục!`;
+                        feedbackEl.className = 'feedback animate-success';
+                    } else if (hackType === 'fake_signature') {
+                        // Đối với chữ ký giả, chỉ cần vô hiệu hóa chữ ký giả và cho phép ký lại
+                        signature = null; 
+                        feedbackEl.textContent = 'Đã phát hiện chữ ký giả mạo! Bây giờ bạn có thể ký lại.';
+                        feedbackEl.className = 'feedback animate-success';
+                    } else if (isTampered) { 
+                        // Nếu không phải loại hack cụ thể nào nhưng bị giả mạo (thay đổi số tiền)
+                        // Khôi phục về dữ liệu gốc
+                        currentTransaction = { ...originalTransactionData };
+                        feedbackEl.textContent = 'Giao dịch đã được khôi phục về trạng thái gốc!';
+                        feedbackEl.className = 'feedback animate-success';
+                        isTampered = false; // Đặt lại cờ giả mạo
+                    } else {
+                        // Trường hợp dự phòng cho các loại hack không mong muốn
+                        feedbackEl.textContent = 'Câu đố đã được giải! Tiến hành các bước tiếp theo.';
+                        feedbackEl.className = 'feedback animate-success';
+                    }
+
+                    // Đặt lại trạng thái hack sau khi giải đố thành công
+                    isHacked = false;
+                    hackType = null;
+                    decryptSection.classList.add('hidden');
+                    transactionCard.classList.remove('hack-effect');
+                    score += 50 * level * keyLevel * (combo + 1);
+                    successSound.play();
+                } catch (e) {
+                    console.error("Lỗi giải mã/khôi phục:", e);
+                    feedbackEl.textContent = 'Lỗi trong quá trình khôi phục giao dịch! Vui lòng thử lại!';
+                    feedbackEl.className = 'error animate-error';
+                    errorSound.play();
+                    score = Math.max(0, score - 20); // Trừ điểm nhỏ cho lỗi giải mã
+                }
+                updateUI();
+            } else {
+                puzzleFeedbackEl.textContent = 'Sai rồi! Thử lại!';
+                puzzleFeedbackEl.className = 'error';
+                errorSound.play();
+                score = Math.max(0, score - 5); // Trừ điểm nhỏ cho câu trả lời sai
+                updateUI();
+            }
+        }
+
+        // Bỏ qua giao dịch
+        function skipTransaction() {
+            score = Math.max(0, score - 50);
+            combo = 0;
+            feedbackEl.textContent = 'Đã bỏ qua giao dịch, mất 50 điểm!';
+            feedbackEl.className = 'error animate-error';
+            errorSound.play();
+            puzzleModal.style.display = 'none'; // Đóng modal câu đố nếu đang mở
+            nextTransaction();
+        }
+
+        // Mã hóa AES
+        function encryptTransaction() {
+            if (isHacked || isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash) { 
+                feedbackEl.textContent = 'Không thể mã hóa khi giao dịch đang bị tấn công hoặc giả mạo! Giải quyết vấn đề trước.';
+                feedbackEl.className = 'error animate-error';
+                errorSound.play();
+                return;
+            }
+            const key = CryptoJS.enc.Utf8.parse(correctKey);
+            const iv = CryptoJS.enc.Utf8.parse('abcdef9876543210');
+            const data = JSON.stringify(currentTransaction); // Mã hóa dữ liệu hiện tại (có thể đã bị giả mạo nhưng đã được xử lý)
+            encryptedData = CryptoJS.AES.encrypt(data, key, { iv: iv }).toString();
+            feedbackEl.textContent = `Giao dịch đã được mã hóa thành công bằng AES! (Cipher: ${encryptedData.substr(0, 8)}...)`;
+            feedbackEl.className = 'feedback animate-success';
+            score += 10 * level * keyLevel * (combo + 1);
+            combo++;
+            updateUI();
+            successSound.play();
+        }
+
+        // Ký RSA (mô phỏng)
+        function signTransaction() {
+            if (isHacked || isTampered && CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString() !== originalHash) { 
+                feedbackEl.textContent = 'Không thể ký khi giao dịch đang bị tấn công hoặc giả mạo! Giải quyết vấn đề trước.';
+                feedbackEl.className = 'error animate-error';
+                errorSound.play();
+                return;
+            }
+            // Ký dữ liệu giao dịch *hiện đang hiển thị*
+            signature = CryptoJS.SHA256(JSON.stringify(currentTransaction) + correctKey).toString(); 
+            feedbackEl.textContent = `Giao dịch đã được ký thành công bằng RSA! (Signature: ${signature.substr(0, 8)}...)`;
+            feedbackEl.className = 'feedback animate-success';
+            score += 15 * level * keyLevel * (combo + 1);
+            combo++;
+            updateUI();
+            successSound.play();
+        }
+
+        // Kiểm tra toàn vẹn SHA
+        function verifyIntegrity() {
+            if (isHacked) { // Nếu vẫn đang ở trạng thái hack (chưa giải đố)
+                feedbackEl.textContent = 'Không thể kiểm tra tính toàn vẹn khi giao dịch đang bị tấn công! Giải câu đố trước.';
+                feedbackEl.className = 'error animate-error';
+                errorSound.play();
+                return;
+            }
+            
+            const currentHash = CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString();
+            // So sánh với ORIGINAL_HASH được tính từ originalTransactionData
+            if (currentHash === originalHash) {
+                feedbackEl.textContent = `Kiểm tra toàn vẹn thành công bằng SHA! (Hash: ${currentHash.substr(0, 8)}...)`;
+                feedbackEl.className = 'feedback animate-success';
+                score += 25 * level * keyLevel * (combo + 1);
+                combo++;
+                successSound.play();
+                nextBtn.disabled = false; // Bật nút tiếp theo nếu tính toàn vẹn được xác nhận
+            } else {
+                feedbackEl.textContent = `Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! (Hash: ${currentHash.substr(0, 8)}...) Giao dịch đã bị thay đổi! Bỏ qua hoặc Giải Câu Đố để khôi phục.`;
+                feedbackEl.className = 'error animate-error';
+                errorSound.play();
+                combo = 0; // Phá vỡ combo khi thất bại
+                decryptSection.classList.remove('hidden'); // Hiện lại phần giải mã
+                tamperedHashDisplay.textContent = currentHash.substr(0, 8) + '...'; // Cập nhật hash trên UI
+                updateUI();
+            }
+        }
+
+        // Nâng cấp khóa
+        function upgradeKey() {
+            if (score >= 100 && keyLevel < 3) {
+                score -= 100;
+                keyLevel++;
+                feedbackEl.textContent = `Đã nâng cấp khóa lên cấp ${keyLevel}! (Hệ số điểm: ${keyLevel}x)`;
+                feedbackEl.className = 'feedback animate-success';
+                upgradeSound.play();
+                localStorage.setItem('keyLevel', keyLevel);
+                updateUI();
+            }
+        }
+
+        // Kết thúc trò chơi
+        function endGame() {
+            clearInterval(timerInterval);
+            highScores.push({ score, level, date: new Date().toLocaleString() });
+            highScores.sort((a, b) => b.score - a.score);
+            highScores = highScores.slice(0, 5);
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+            finalScoreEl.textContent = score;
+            finalLevelEl.textContent = level;
+            highScoresEl.innerHTML = highScores.map(hs => `<li>${hs.score} điểm (Cấp ${hs.level}) - ${hs.date}</li>`).join('');
+            gameOverModal.style.display = 'block';
+            disableAllButtons();
+        }
+
+        // Chơi lại
+        function resetGame() {
+            level = 1;
+            score = 0;
+            transactionCount = 0;
+            combo = 0;
+            keyLevel = 1;
+            gameOverModal.style.display = 'none';
+            generateTransaction();
+            updateUI();
+        }
+
+        // Vô hiệu hóa tất cả nút
+        function disableAllButtons() {
+            encryptBtn.disabled = true;
+            signBtn.disabled = true;
+            verifyBtn.disabled = true;
+            nextBtn.disabled = true;
+            upgradeKeyBtn.disabled = true;
+            decryptSection.classList.add('hidden');
+            puzzleModal.style.display = 'none';
+        }
+
+        // Giao dịch tiếp theo
+        function nextTransaction() {
+            clearInterval(timerInterval);
+            transactionCount++;
+            if (transactionCount >= 3) { // Sau 3 giao dịch thành công, lên cấp
+                level++;
+                transactionCount = 0;
+                levelUpSound.play();
+                if (level > 3) { // Kết thúc trò chơi sau cấp 3
+                    endGame();
+                    return;
+                }
+            }
+            // Đặt lại các biến trạng thái
+            encryptedData = null;
+            signature = null;
+            originalHash = null;
+            currentTransaction = {}; 
+            originalTransactionData = {}; 
+            isTampered = false; 
+            isHacked = false;
+            hackType = null;
+            generateTransaction(); // Tạo giao dịch mới
+            updateUI();
+        }
+
+        // Gắn sự kiện vào các nút
+        encryptBtn.addEventListener('click', encryptTransaction);
+        signBtn.addEventListener('click', signTransaction);
+        verifyBtn.addEventListener('click', verifyIntegrity);
+        nextBtn.addEventListener('click', nextTransaction);
+        upgradeKeyBtn.addEventListener('click', upgradeKey);
+        solvePuzzleBtn.addEventListener('click', showPuzzle);
+        skipBtn.addEventListener('click', skipTransaction);
+        hintBtn.addEventListener('click', useHint); 
+        playAgainBtn.addEventListener('click', resetGame);
+    </script>
+</body>
+</html>
