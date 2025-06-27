@@ -100,11 +100,10 @@
                    class="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <p class="text-gray-700">Nhiệm vụ của bạn là bảo vệ các giao dịch ngân hàng bằng cách:</p>
             <ul class="list-disc pl-5 mb-4 text-gray-700">
-                <li>Giáo Viên :  Lê Thị Thùy Trang.</li>
-                <li>Mã hóa dữ liệu bằng AES.</li>
-                <li>Ký và Xác thực giao dịch bằng RSA.</li>
-                <li>Kiểm tra tính toàn vẹn dữ liệu bằng SHA-256.</li>
-                <li>Giải mã/Khôi phục: Khi bị tấn công, hãy xử lý để khôi phục giao dịch.</li>
+                <li>Mã hóa dữ liệu bằng **AES**.</li>
+                <li>Ký và Xác thực giao dịch bằng **RSA**.</li>
+                <li>Kiểm tra tính toàn vẹn dữ liệu bằng **SHA-256**.</li>
+                <li>**Giải mã/Khôi phục**: Khi bị tấn công, hãy xử lý để khôi phục giao dịch.</li>
             </ul>
             <button id="startGameBtn" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-300 shadow">Bắt Đầu</button>
         </div>
@@ -130,7 +129,7 @@
             <p class="text-lg text-gray-700">Câu đố đã giải: <span id="finalPuzzles" class="font-bold text-purple-600"></span></p>
 
             <h3 class="text-xl font-semibold mt-6 mb-3 text-gray-800">Bảng Xếp Hạng</h3>
-            <ul id="highScores" class="list-decimal pl-8 text-gray-700 text-left mx-auto max-w-xs"></ul>
+            <ol id="highScoresList" class="list-decimal pl-8 text-gray-700 text-left mx-auto max-w-xs"></ol>
             
             <h3 class="text-xl font-semibold mt-6 mb-3 text-gray-800">Lịch Sử Chơi Gần Đây</h3>
             <div class="history-scroll-container">
@@ -258,7 +257,7 @@
         const finalLevelEl = document.getElementById('finalLevel');
         const finalTransactionsEl = document.getElementById('finalTransactions');
         const finalPuzzlesEl = document.getElementById('finalPuzzles');
-        const highScoresEl = document.getElementById('highScores');
+        const highScoresListEl = document.getElementById('highScoresList'); // Changed from highScores to highScoresList
         const gameHistoryBodyEl = document.getElementById('gameHistoryBody');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const decryptMessage = document.getElementById('decryptMessage');
@@ -387,6 +386,7 @@
                     decryptMessage.textContent = 'Cảnh báo: Hacker tấn công! SQL Injection! Dữ liệu tài khoản đã bị thay đổi.';
                     actionBtn.textContent = 'Làm sạch Dữ liệu';
                     actionBtn.onclick = handleSqlInjectionHack;
+                    actionBtn.disabled = false; // ENABLE THE BUTTON FOR SQL INJECTION FIX
                 } else if (isHacked && (hackType === 'double_encrypt' || hackType === 'wrong_key')) {
                     decryptMessage.textContent = `Cảnh báo: Hacker tấn công! (${hackType === 'double_encrypt' ? 'Mã hóa kép' : 'Khóa sai'})! Giải câu đố để khôi phục.`;
                     actionBtn.textContent = 'Giải Câu Đố';
@@ -579,7 +579,7 @@
                 errorSound.play();
                 resetCombo();
                 addScore(pointsLost);
-                actionBtn.disabled = true; 
+                // actionBtn.disabled = true; // This was disabling the SQL Injection button too
                 updateUI();
             }
         }
@@ -721,7 +721,9 @@
             finalTransactionsEl.textContent = game.transactionsCompleted;
             finalPuzzlesEl.textContent = game.puzzlesSolved;
 
-            highScoresEl.innerHTML = getHighScores().map(hs => `<li>${hs.name} - ${hs.score} điểm (Cấp ${hs.level}) - ${hs.date}</li>`).join('');
+            // Sort highScores in descending order and limit to 5
+            const sortedHighScores = getHighScores().sort((a, b) => b.score - a.score).slice(0, 5);
+            highScoresListEl.innerHTML = sortedHighScores.map(hs => `<li>${hs.name} - ${hs.score} điểm (Cấp ${hs.level}) - ${hs.date}</li>`).join('');
             
             gameHistoryBodyEl.innerHTML = '';
             getGameHistory().slice().reverse().forEach(entry => {
