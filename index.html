@@ -100,10 +100,11 @@
                    class="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <p class="text-gray-700">Nhiệm vụ của bạn là bảo vệ các giao dịch ngân hàng bằng cách:</p>
             <ul class="list-disc pl-5 mb-4 text-gray-700">
-                <li>Mã hóa dữ liệu bằng **AES**.</li>
-                <li>Ký và Xác thực giao dịch bằng **RSA**.</li>
-                <li>Kiểm tra tính toàn vẹn dữ liệu bằng **SHA-256**.</li>
-                <li>**Giải mã/Khôi phục**: Khi bị tấn công, hãy xử lý để khôi phục giao dịch.</li>
+                <li>Giáo Viên :  Lê Thị Thùy Trang.</li>
+                <li>Mã hóa dữ liệu bằng AES.</li>
+                <li>Ký và Xác thực giao dịch bằng RSA.</li>
+                <li>Kiểm tra tính toàn vẹn dữ liệu bằng SHA-256.</li>
+                <li>Giải mã/Khôi phục: Khi bị tấn công, hãy xử lý để khôi phục giao dịch.</li>
             </ul>
             <button id="startGameBtn" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-300 shadow">Bắt Đầu</button>
         </div>
@@ -483,7 +484,8 @@
          */
         function useHint() {
             if (game.score >= 20 && !hintUsed && currentPuzzle && !puzzleAttempted) { 
-                addScore(-20);
+                const pointsLost = -20;
+                addScore(pointsLost);
                 hintUsed = true;
                 
                 const wrongOptions = currentPuzzle.options.filter(opt => opt !== currentPuzzle.answer);
@@ -498,7 +500,7 @@
                             btn.classList.add('bg-gray-500', 'cursor-not-allowed');
                         }
                     });
-                    puzzleFeedbackEl.textContent = 'Một lựa chọn sai đã bị loại bỏ!';
+                    puzzleFeedbackEl.textContent = `Một lựa chọn sai đã bị loại bỏ! (${pointsLost} điểm)`;
                     puzzleFeedbackEl.className = 'feedback';
                 }
                 updateUI();
@@ -525,7 +527,7 @@
                 puzzleFeedbackEl.className = 'feedback animate-success';
                 setTimeout(() => { 
                     puzzleModal.style.display = 'none';
-                    
+                    let pointsGained = 0;
                     try {
                         if (hackType === 'double_encrypt') {
                             const bytes1 = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
@@ -533,18 +535,22 @@
                             const bytes2 = CryptoJS.AES.decrypt(tempDecrypted, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
                             currentTransaction = JSON.parse(bytes2.toString(CryptoJS.enc.Utf8));
                             encryptedData = null; 
-                            feedbackEl.textContent = `Giải mã kép thành công! Giao dịch đã được khôi phục!`;
+                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
+                            feedbackEl.textContent = `Giải mã kép thành công! Giao dịch đã được khôi phục! (+${pointsGained} điểm)`;
                         } else if (hackType === 'wrong_key') {
                             const bytes = CryptoJS.AES.decrypt(encryptedData, CryptoJS.enc.Utf8.parse(correctKey), { iv: CryptoJS.enc.Utf8.parse('abcdef9876543210') });
                             currentTransaction = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
                             encryptedData = null; 
-                            feedbackEl.textContent = `Giải mã khóa sai thành công! Giao dịch đã được khôi phục!`;
+                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
+                            feedbackEl.textContent = `Giải mã khóa sai thành công! Giao dịch đã được khôi phục! (+${pointsGained} điểm)`;
                         } else if (hackType === 'fake_signature') { 
                             signature = null; 
-                            feedbackEl.textContent = 'Chữ ký giả mạo đã được phát hiện và vô hiệu hóa! Bạn có thể ký lại giao dịch.';
+                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
+                            feedbackEl.textContent = `Chữ ký giả mạo đã được phát hiện và vô hiệu hóa! Bạn có thể ký lại giao dịch. (+${pointsGained} điểm)`;
                         } else if (isTampered) { 
                             currentTransaction = { ...originalTransactionData };
-                            feedbackEl.textContent = 'Giao dịch đã được khôi phục về trạng thái gốc!';
+                            pointsGained = 50 * game.level * game.keyLevel * (game.combo + 1);
+                            feedbackEl.textContent = `Giao dịch đã được khôi phục về trạng thái gốc! (+${pointsGained} điểm)`;
                             isTampered = false; 
                         }
 
@@ -553,24 +559,26 @@
                         decryptSection.classList.add('hidden'); 
                         transactionCard.classList.remove('hack-effect'); 
                         
-                        addScore(50 * game.level * game.keyLevel * (game.combo + 1));
+                        addScore(pointsGained);
                         incrementPuzzlesSolved();
                         successSound.play(); 
                     } catch (e) {
                         console.error("Lỗi giải mã/khôi phục:", e);
-                        feedbackEl.textContent = 'Lỗi trong quá trình khôi phục giao dịch! Vui lòng thử lại!';
+                        const pointsLost = -20;
+                        feedbackEl.textContent = `Lỗi trong quá trình khôi phục giao dịch! Vui lòng thử lại! (${pointsLost} điểm)`;
                         feedbackEl.className = 'error animate-error';
                         errorSound.play();
-                        addScore(-20);
+                        addScore(pointsLost);
                     }
                     updateUI(); 
                 }, 1000); 
             } else {
-                puzzleFeedbackEl.textContent = 'Trả lời sai! Giao dịch này không thể khôi phục bằng cách giải đố nữa. Vui lòng bỏ qua giao dịch.';
+                const pointsLost = -10;
+                puzzleFeedbackEl.textContent = `Trả lời sai! Giao dịch này không thể khôi phục bằng cách giải đố nữa. Vui lòng bỏ qua giao dịch. (${pointsLost} điểm)`;
                 puzzleFeedbackEl.className = 'error animate-error';
                 errorSound.play();
                 resetCombo();
-                addScore(-10);
+                addScore(pointsLost);
                 actionBtn.disabled = true; 
                 updateUI();
             }
@@ -586,9 +594,11 @@
             hackType = null;
             decryptSection.classList.add('hidden');
             transactionCard.classList.remove('hack-effect');
-            feedbackEl.textContent = 'Dữ liệu SQL Injection đã được làm sạch! Giao dịch an toàn trở lại.';
+            
+            const pointsGained = 40 * game.level * game.keyLevel * (game.combo + 1);
+            feedbackEl.textContent = `Dữ liệu SQL Injection đã được làm sạch! Giao dịch an toàn trở lại. (+${pointsGained} điểm)`;
             feedbackEl.className = 'feedback animate-success';
-            addScore(40 * game.level * game.keyLevel * (game.combo + 1));
+            addScore(pointsGained);
             incrementPuzzlesSolved();
             successSound.play();
             updateUI();
@@ -598,9 +608,10 @@
          * Bỏ qua giao dịch hiện tại (mất điểm).
          */
         function skipTransaction() {
-            addScore(-50);
+            const pointsLost = -50;
+            addScore(pointsLost);
             resetCombo();
-            feedbackEl.textContent = 'Đã bỏ qua giao dịch, mất 50 điểm!';
+            feedbackEl.textContent = `Đã bỏ qua giao dịch, (${pointsLost} điểm)!`;
             feedbackEl.className = 'error animate-error';
             errorSound.play();
             puzzleModal.style.display = 'none'; 
@@ -621,9 +632,11 @@
             const iv = CryptoJS.enc.Utf8.parse('abcdef9876543210');
             const data = JSON.stringify(currentTransaction); 
             encryptedData = CryptoJS.AES.encrypt(data, key, { iv: iv }).toString();
-            feedbackEl.textContent = `Giao dịch đã được mã hóa thành công bằng AES! (Cipher: ${encryptedData.substr(0, 15)}...)`;
+            
+            const pointsGained = 10 * game.level * game.keyLevel * (game.combo + 1);
+            feedbackEl.textContent = `Giao dịch đã được mã hóa thành công bằng AES! (+${pointsGained} điểm)`;
             feedbackEl.className = 'feedback animate-success';
-            addScore(10 * game.level * game.keyLevel * (game.combo + 1));
+            addScore(pointsGained);
             incrementCombo();
             updateUI();
             successSound.play();
@@ -640,9 +653,11 @@
                 return;
             }
             signature = CryptoJS.SHA256(JSON.stringify(currentTransaction) + correctKey).toString(); 
-            feedbackEl.textContent = `Giao dịch đã được ký thành công bằng RSA! (Signature: ${signature.substr(0, 15)}...)`;
+            
+            const pointsGained = 15 * game.level * game.keyLevel * (game.combo + 1);
+            feedbackEl.textContent = `Giao dịch đã được ký thành công bằng RSA! (+${pointsGained} điểm)`;
             feedbackEl.className = 'feedback animate-success';
-            addScore(15 * game.level * game.keyLevel * (game.combo + 1));
+            addScore(pointsGained);
             incrementCombo();
             updateUI();
             successSound.play();
@@ -662,14 +677,15 @@
             const currentHash = CryptoJS.SHA256(JSON.stringify(currentTransaction)).toString();
             
             if (currentHash === originalHash) {
-                feedbackEl.textContent = `Kiểm tra toàn vẹn thành công bằng SHA! (Hash: ${currentHash.substr(0, 15)}...)`;
+                const pointsGained = 25 * game.level * game.keyLevel * (game.combo + 1);
+                feedbackEl.textContent = `Kiểm tra toàn vẹn thành công bằng SHA! (+${pointsGained} điểm)`;
                 feedbackEl.className = 'feedback animate-success';
-                addScore(25 * game.level * game.keyLevel * (game.combo + 1));
+                addScore(pointsGained);
                 incrementCombo();
                 successSound.play();
                 nextBtn.disabled = false; 
             } else {
-                feedbackEl.textContent = `Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! (Hash: ${currentHash.substr(0, 15)}...) Giao dịch đã bị thay đổi! Bỏ qua hoặc Giải Câu Đố để khôi phục.`;
+                feedbackEl.textContent = `Cảnh báo: Giao dịch bị giả mạo! Toàn vẹn thất bại! Giao dịch đã bị thay đổi! Bỏ qua hoặc Giải Câu Đố để khôi phục.`;
                 feedbackEl.className = 'error animate-error';
                 errorSound.play();
                 resetCombo();
@@ -683,9 +699,10 @@
          */
         function upgradeKey() {
             if (game.score >= 100 && game.keyLevel < 3) { 
-                addScore(-100);
+                const pointsLost = -100;
+                addScore(pointsLost);
                 upgradeKeyLevel();
-                feedbackEl.textContent = `Đã nâng cấp khóa lên cấp ${game.keyLevel}! (Hệ số điểm: ${game.keyLevel}x)`;
+                feedbackEl.textContent = `Đã nâng cấp khóa lên cấp ${game.keyLevel}! (Hệ số điểm: ${game.keyLevel}x, ${pointsLost} điểm)`;
                 feedbackEl.className = 'feedback animate-success';
                 upgradeSound.play(); 
                 updateUI(); 
