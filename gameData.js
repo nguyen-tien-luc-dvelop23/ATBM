@@ -1,6 +1,3 @@
-// gameData.js - Quản lý dữ liệu game và lịch sử người chơi
-
-// Biến trạng thái game
 let game = {
     playerName: '',
     level: 1,
@@ -8,8 +5,8 @@ let game = {
     transactionCount: 0,
     combo: 0,
     keyLevel: 1,
-    puzzlesSolved: 0, // Số câu đố đã giải
-    transactionsCompleted: 0 // Tổng số giao dịch đã hoàn thành
+    puzzlesSolved: 0, 
+    transactionsCompleted: 0 
 };
 
 // Bảng xếp hạng cao nhất
@@ -98,16 +95,29 @@ function saveGameResult() {
         date: new Date().toLocaleString('vi-VN')
     };
 
-    // Cập nhật bảng xếp hạng (chỉ top 5 điểm cao nhất)
-    highScores.push({ name: gameResult.name, score: gameResult.score, level: gameResult.level, date: gameResult.date });
+    // --- Cập nhật Bảng Xếp Hạng (chỉ giữ lại điểm cao nhất cho mỗi người chơi) ---
+    // Tìm xem người chơi này đã có trong highScores chưa
+    const existingIndex = highScores.findIndex(hs => hs.name === gameResult.name);
+
+    if (existingIndex !== -1) {
+        // Nếu người chơi đã tồn tại, chỉ cập nhật nếu điểm số hiện tại cao hơn
+        if (gameResult.score > highScores[existingIndex].score) {
+            highScores[existingIndex] = gameResult; // Cập nhật thông tin chi tiết
+        }
+    } else {
+        // Nếu người chơi chưa có trong bảng xếp hạng, thêm vào
+        highScores.push(gameResult);
+    }
+    
+    // Sắp xếp lại theo điểm số và chỉ lấy top 5
     highScores.sort((a, b) => b.score - a.score);
     highScores = highScores.slice(0, 5);
     localStorage.setItem('highScores', JSON.stringify(highScores));
 
-    // Lưu vào lịch sử chơi (có thể lưu nhiều hơn top 5)
+    // --- Cập nhật Lịch Sử Chơi (lưu tất cả các lượt chơi, nhưng có thể giới hạn số lượng) ---
+    // Thêm lượt chơi hiện tại vào lịch sử
     gameHistory.push(gameResult);
-    // Giới hạn lịch sử chơi, ví dụ 20 lượt gần nhất để tránh quá tải
-    gameHistory = gameHistory.slice(Math.max(gameHistory.length - 20, 0)); 
+    gameHistory = gameHistory.slice(Math.max(gameHistory.length - 10, 0)); 
     localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
 }
 
