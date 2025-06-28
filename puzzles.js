@@ -1,4 +1,3 @@
-// puzzles.js
 const gamePuzzles = [
     {
         text: "Trong mật mã học, 'AES' là viết tắt của gì?",
@@ -89,5 +88,175 @@ const gamePuzzles = [
         options: ["Phần mềm theo dõi hoạt động người dùng", "Phần mềm mã hóa dữ liệu và yêu cầu tiền chuộc", "Một loại virus lây lan qua email", "Phần mềm giúp tăng tốc máy tính"],
         answer: "Phần mềm mã hóa dữ liệu và yêu cầu tiền chuộc",
         hint: "Nó 'bắt cóc' dữ liệu của bạn."
-    }
+    },
+    {
+    "text": "RSA là một thuật toán dùng cho mục đích gì?",
+    "options": ["Mã hóa đối xứng", "Băm dữ liệu", "Mã hóa bất đối xứng", "Nén dữ liệu"],
+    "answer": "Mã hóa bất đối xứng",
+    "hint": "Thuật toán này dùng cặp khóa công khai và riêng tư."
+  },
+  {
+    "text": "Khóa riêng (private key) trong RSA được dùng để làm gì?",
+    "options": ["Giải mã dữ liệu đã mã hóa bằng khóa công khai", "Tạo hash", "Mã hóa dữ liệu", "Tạo mã QR"],
+    "answer": "Giải mã dữ liệu đã mã hóa bằng khóa công khai",
+    "hint": "Khóa riêng tư dùng để giải mã trong hệ thống bất đối xứng."
+  },
+  {
+    "text": "SHA-256 là thuật toán gì?",
+    "options": ["Thuật toán mã hóa", "Thuật toán nén", "Thuật toán băm", "Thuật toán ký điện tử"],
+    "answer": "Thuật toán băm",
+    "hint": "Dùng để tạo chuỗi đầu ra có độ dài cố định từ dữ liệu đầu vào."
+  },
+  {
+    "text": "Trong bảo mật, thuật ngữ 'Integrity' có nghĩa là gì?",
+    "options": ["Mã hóa dữ liệu", "Tính toàn vẹn của dữ liệu", "Tốc độ xử lý", "Giấu thông tin người gửi"],
+    "answer": "Tính toàn vẹn của dữ liệu",
+    "hint": "Nó đảm bảo dữ liệu không bị thay đổi trái phép."
+  },
+  {
+    "text": "Trong AES, có bao nhiêu kích thước khóa phổ biến?",
+    "options": ["1", "2", "3", "4"],
+    "answer": "3",
+    "hint": "AES có các phiên bản 128-bit, 192-bit và 256-bit."
+  },
+  {
+    "text": "Khóa công khai (public key) có thể được chia sẻ với ai?",
+    "options": ["Chỉ người gửi", "Không ai cả", "Bất kỳ ai", "Chỉ người nhận"],
+    "answer": "Bất kỳ ai",
+    "hint": "Đây là điểm mạnh của hệ thống bất đối xứng."
+  },
+  {
+    "text": "Mục đích chính của chữ ký số là gì?",
+    "options": ["Giảm dung lượng dữ liệu", "Xác minh danh tính và toàn vẹn", "Giấu dữ liệu", "Tăng tốc xử lý"],
+    "answer": "Xác minh danh tính và toàn vẹn",
+    "hint": "Chữ ký số chứng minh người gửi và bảo vệ dữ liệu."
+  },
+  {
+    "text": "Khi một hacker thực hiện tấn công 'Man-in-the-Middle', điều gì xảy ra?",
+    "options": ["Chặn và sửa nội dung truyền giữa 2 bên", "DDoS", "Giả mạo DNS", "Quét cổng máy chủ"],
+    "answer": "Chặn và sửa nội dung truyền giữa 2 bên",
+    "hint": "Kẻ tấn công đứng giữa và nghe lén/gửi dữ liệu giả mạo."
+  },
+  {
+    "text": "Thuật toán AES thuộc loại nào?",
+    "options": ["Mã hóa đối xứng", "Mã hóa bất đối xứng", "Băm", "Nén"],
+    "answer": "Mã hóa đối xứng",
+    "hint": "AES dùng cùng một khóa để mã hóa và giải mã."
+  },
+  {
+    "text": "Hash có thể được đảo ngược lại dữ liệu gốc không?",
+    "options": ["Có", "Không", "Chỉ khi có khóa", "Chỉ với máy lượng tử"],
+    "answer": "Không",
+    "hint": "Hàm băm là một chiều – không thể đảo ngược."
+  },
+    {
+    "text": "ECB trong AES có điểm yếu gì nghiêm trọng?",
+    "options": [
+      "Không hỗ trợ dữ liệu lớn",
+      "Dữ liệu lặp sẽ sinh ra khối mã giống nhau",
+      "Không tương thích với RSA",
+      "Dễ bị mất toàn vẹn dữ liệu"
+    ],
+    "answer": "Dữ liệu lặp sẽ sinh ra khối mã giống nhau",
+    "hint": "Đây là lý do tại sao ECB không được dùng trong thực tế."
+  },
+  {
+    "text": "RSA trở nên yếu khi sử dụng khóa bao nhiêu bit trở xuống?",
+    "options": [
+      "4096-bit",
+      "2048-bit",
+      "1024-bit",
+      "512-bit"
+    ],
+    "answer": "1024-bit",
+    "hint": "Ngày nay khóa < 2048-bit được coi là rủi ro."
+  },
+  {
+    "text": "Thuật toán Diffie-Hellman dùng để làm gì?",
+    "options": [
+      "Ký số",
+      "Mã hóa văn bản",
+      "Trao đổi khóa",
+      "Băm dữ liệu"
+    ],
+    "answer": "Trao đổi khóa",
+    "hint": "Nó cho phép hai bên chia sẻ khóa bí mật qua kênh không an toàn."
+  },
+  {
+    "text": "Trong SHA-256, kích thước đầu ra luôn là bao nhiêu bit?",
+    "options": [
+      "128-bit",
+      "160-bit",
+      "256-bit",
+      "512-bit"
+    ],
+    "answer": "256-bit",
+    "hint": "Bất kể đầu vào dài bao nhiêu, đầu ra luôn cố định."
+  },
+  {
+    "text": "Một tệp tin bị thay đổi một byte duy nhất. Hash SHA-256 của nó sẽ như thế nào?",
+    "options": [
+      "Thay đổi toàn bộ",
+      "Thay đổi một phần nhỏ",
+      "Không thay đổi",
+      "Tăng thêm 1 byte"
+    ],
+    "answer": "Thay đổi toàn bộ",
+    "hint": "Hàm băm có tính chất 'hiệu ứng cánh bướm'."
+  },
+  {
+    "text": "Một hacker có thể dùng phương pháp nào để đoán khóa mật khẩu?",
+    "options": [
+      "Tấn công Brute-force",
+      "Tấn công MITM",
+      "Tấn công SQL Injection",
+      "Tấn công DoS"
+    ],
+    "answer": "Tấn công Brute-force",
+    "hint": "Dò từng khả năng một đến khi đúng."
+  },
+  {
+    "text": "PGP là viết tắt của gì?",
+    "options": [
+      "Pretty Good Privacy",
+      "Public Global Protection",
+      "Private Guard Protocol",
+      "Password Generator Program"
+    ],
+    "answer": "Pretty Good Privacy",
+    "hint": "Một phần mềm mã hóa email nổi tiếng."
+  },
+  {
+    "text": "Trong mã hóa bất đối xứng, điều gì xảy ra nếu khóa riêng bị lộ?",
+    "options": [
+      "Chữ ký số vẫn an toàn",
+      "Dữ liệu mã hóa vẫn an toàn",
+      "Toàn bộ hệ thống bị nguy hiểm",
+      "Không vấn đề gì vì có khóa công khai"
+    ],
+    "answer": "Toàn bộ hệ thống bị nguy hiểm",
+    "hint": "Khóa riêng phải được bảo vệ tuyệt đối."
+  },
+  {
+    "text": "Sự khác biệt chính giữa AES và RSA là gì?",
+    "options": [
+      "AES dùng khóa dài hơn",
+      "RSA nhanh hơn AES",
+      "AES đối xứng, RSA bất đối xứng",
+      "AES dùng cho chữ ký số"
+    ],
+    "answer": "AES đối xứng, RSA bất đối xứng",
+    "hint": "Đây là sự khác biệt về cách dùng khóa."
+  },
+  {
+    "text": "Khái niệm “nonce” trong mật mã học có nghĩa là gì?",
+    "options": [
+      "Một dạng thuật toán thay thế",
+      "Một số chỉ dùng một lần",
+      "Một loại khóa bí mật",
+      "Một bước trong băm dữ liệu"
+    ],
+    "answer": "Một số chỉ dùng một lần",
+    "hint": "Thường dùng để ngăn tấn công lặp (replay attack)."
+  }
 ];
