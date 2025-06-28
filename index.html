@@ -504,19 +504,24 @@
         </div>
 
         <div id="transactionCard" class="section transaction-card mb-6">
+
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Giao Dịch Hiện Tại</h2>
+        
             <div class="transaction-details text-lg mb-4">
                 <p>ID: <span id="transactionId" class="font-mono"></span></p>
                 <p>Tài khoản: <span id="accountNumber" class="font-mono"></span></p>
                 <p>Số tiền: <span id="amount" class="font-mono"></span></p>
             </div>
+        
             <div class="progress-bar-container">
                 <div id="progress" class="progress-bar"></div>
             </div>
+        
             <p class="text-base font-semibold mt-2">Thời gian còn lại: <span id="timer" class="text-blue-500">50</span>s</p>
+        
             <p id="feedback" class="feedback text-base mt-4"></p>
         </div>
-
+        
         <div class="section flex flex-wrap justify-center mb-6">
             <button id="encryptBtn" class="btn btn-primary">Mã hóa (AES)</button>
             <button id="signBtn" class="btn btn-success">Ký (RSA)</button>
@@ -524,13 +529,23 @@
             <button id="nextBtn" class="btn btn-primary">Xử lý Giao dịch</button>
             <button id="skipBtn" class="btn btn-danger">Bỏ qua (-50đ)</button>
         </div>
-
+        <div id="skipTransactionSection" class="section hidden mt-4 text-center">
+            <button id="skipTransactionBtn" class="btn btn-danger">Bỏ qua giao dịch</button>
+        </div>
+        
         <div id="decryptSection" class="section hidden bg-red-50 border-red-300 border-2">
             <p id="decryptMessage" class="text-red-700 font-semibold mb-4 text-lg">Cảnh báo: Phát hiện giả mạo dữ liệu! Cần kiểm tra toàn vẹn!</p>
             <button id="actionBtn" class="btn btn-danger">Giải quyết vấn đề</button>
         </div>
-
-
+        
+        <!-- ✅ Giao diện kiểm tra khóa -->
+        <div id="keyCheckSection" class="section hidden mt-4 bg-yellow-50 border-yellow-300 border-2 p-4 rounded">
+            <p class="text-yellow-700 font-semibold mb-2 text-lg" id="keyCheckMessage">Đang so sánh kết quả </p>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+                <div id="keyCheckProgress" class="bg-yellow-400 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+        
         <div class="section mt-6 text-left">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Lịch sử Chơi Gần đây</h2>
             <div class="history-scroll-container">
@@ -545,18 +560,15 @@
                             <th>Thời gian</th>
                         </tr>
                     </thead>
-                    <tbody id="gameHistoryBody">
-                        </tbody>
+                    <tbody id="gameHistoryBody"></tbody>
                 </table>
             </div>
         </div>
-
+        
         <div class="section mt-6 text-left">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Điểm cao nhất</h2>
-            <ol id="highScoresList" class="list-decimal list-inside text-lg">
-                </ol>
+            <ol id="highScoresList" class="list-decimal list-inside text-lg"></ol>
         </div>
-
     </div>
 
     <div id="welcomeModal" class="modal">
@@ -591,6 +603,59 @@
             <button id="playAgainBtn" class="btn btn-primary w-full">Chơi lại</button>
         </div>
     </div>
+    <script>
+        document.getElementById('verifyBtn').addEventListener('click', function () {
+            const section = document.getElementById('keyCheckSection');
+            const message = document.getElementById('keyCheckMessage');
+            const progress = document.getElementById('keyCheckProgress');
+            const skipSection = document.getElementById('skipTransactionSection');
+        
+            // Reset trạng thái
+            section.classList.remove('hidden');
+            skipSection.classList.add('hidden');
+            message.textContent = 'Đang so sánh kết quả ';
+            message.classList.remove('text-green-700', 'text-red-700');
+            message.classList.add('text-yellow-700');
+            progress.style.width = '0%';
+        
+            let percent = 0;
+        
+            const interval = setInterval(() => {
+                percent += 10;
+                progress.style.width = percent + '%';
+        
+                if (percent >= 100) {
+                    clearInterval(interval);
+        
+                    // ✅ Random đúng / sai
+                    const isValid = Math.random() > 0.5;
+        
+                    if (isValid) {
+                        message.textContent = '✔️ Khóa hợp lệ. Dữ liệu toàn vẹn!';
+                        message.classList.remove('text-yellow-700', 'text-red-700');
+                        message.classList.add('text-green-700');
+                        skipSection.classList.add('hidden');
+                    } else {
+                        message.textContent = '❌ Khóa không hợp lệ. Có thể dữ liệu đã bị thay đổi! Giao dịch có thể là giả mạo ';
+                        message.classList.remove('text-yellow-700', 'text-green-700');
+                        message.classList.add('text-red-700');
+                        skipSection.classList.remove('hidden'); // Hiện nút bỏ qua
+                    }
+                }
+            }, 200);
+        });
+        
+        // Xử lý khi bấm "Bỏ qua giao dịch"
+        document.getElementById('skipTransactionBtn').addEventListener('click', function () {
+            alert("Giao dịch đã bị bỏ qua!");
+            // Ẩn lại khối kiểm tra và nút bỏ qua
+            document.getElementById('keyCheckSection').classList.add('hidden');
+            document.getElementById('skipTransactionSection').classList.add('hidden');
+        });
+        </script>
+        
+        
+        
 
     <script src="gameData.js"></script>
     <script src="puzzles.js"></script>
