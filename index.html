@@ -104,7 +104,23 @@
             box-shadow: none;
             opacity: 0.7;
         }
+        .highlight-name {
+    color: #e60073; /* Màu hồng đậm nổi bật */
+    font-weight: bold;
+    animation: blinkGlow 1.2s infinite;
+}
 
+/* Hiệu ứng nhấp nháy + phát sáng */
+@keyframes blinkGlow {
+    0%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 5px #e60073, 0 0 10px #ff66a3, 0 0 15px #ff99cc;
+    }
+    50% {
+        opacity: 0.4;
+        text-shadow: none;
+    }
+}
         /* Specific button styles */
         .btn-primary { background-color: var(--primary-blue); color: white; }
         .btn-primary:hover { background-color: #3a7bd5; }
@@ -574,11 +590,16 @@
     <div id="welcomeModal" class="modal">
         <div class="modal-content">
             <h2 class="text-3xl font-bold mb-4 text-blue-700">Chào mừng đến với Ngân hàng mã hóa!</h2>
-            <p class="mb-4 text-gray-700">Bạn là một chuyên gia bảo mật ngân hàng. Nhiệm vụ của bạn là đảm bảo các giao dịch an toàn bằng cách mã hóa, ký và xác minh chúng. Cẩn thận với các cuộc tấn công của hacker!</p>
+            <p class="mb-4 text-gray-700">
+                Bạn là một chuyên gia bảo mật ngân hàng. Nhiệm vụ của bạn là đảm bảo các giao dịch an toàn bằng cách mã hóa, ký và xác minh chúng.
+                Cẩn thận với các cuộc tấn công của hacker! <br>
+                <span class="highlight-name">By Lê Thị Thùy Trang</span>
+            </p>
             <input type="text" id="playerNameInput" placeholder="Nhập tên của bạn" class="w-full p-2 border border-gray-300 rounded text-center text-lg">
             <button id="startGameBtn" class="btn btn-primary w-full">Bắt đầu trò chơi</button>
         </div>
     </div>
+    
 
     <div id="puzzleModal" class="modal hidden">
         <div class="modal-content">
