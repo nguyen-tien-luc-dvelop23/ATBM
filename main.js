@@ -1,42 +1,30 @@
-// main.js
-
-// --- Game State & Configuration (Giờ lấy từ gameData.js) ---
-// Đảm bảo game và GAME_CONFIG được định nghĩa trong gameData.js và được load trước
-// Ví dụ: <script src="gameData.js"></script> <script src="puzzles.js"></script> <script src="main.js"></script>
-
-// --- Biến trạng thái Game ---
 let currentTransaction = {};
-let originalTransactionData = {}; // Luôn giữ dữ liệu gốc
+let originalTransactionData = {}; 
 let encryptedData = null;
 let signature = null;
-let originalHash = null; // Hash của originalTransactionData
+let originalHash = null;
 
-let sentHash = null; // Hash được tính trước khi ký (trong hàm signTransaction)
+let sentHash = null; 
 
 let timeLeft = GAME_CONFIG.initialTime;
 let timerInterval = null;
-let lastAnimationFrameTime = 0; // Để tính delta time cho requestAnimationFrame
+let lastAnimationFrameTime = 0; 
 
-let isTampered = false; // Giao dịch bị giả mạo dữ liệu
-let isHacked = false; // Giao dịch bị tấn công kỹ thuật số (mã hóa sai, chữ ký giả, v.v.)
-let hackType = null; // Loại tấn công: double_encrypt, wrong_key, fake_signature, sql_injection, malware_injection
-let isBossAttack = false; // Cờ hiệu cho cuộc tấn công boss
+let isTampered = false; 
+let isHacked = false;
+let hackType = null; 
+let isBossAttack = false; 
 
 let hintUsed = false;
-let puzzleAttemptedForCurrentTransaction = false; // Đã cố gắng giải câu đố cho giao dịch hiện tại (đúng hay sai đều là đã cố gắng)
-let currentPuzzle = null; // Câu đố hiện tại đang hiển thị
+let puzzleAttemptedForCurrentTransaction = false; 
+let currentPuzzle = null; 
 
-// Khóa AES mô phỏng. Trong thực tế cần an toàn hơn.
-const AES_KEY_PHRASE = '0123456789abcdef'; // 16 ký tự cho khóa 128-bit
-const AES_IV_PHRASE = 'abcdef9876543210'; // 16 ký tự cho IV
 
-// Khóa công khai và riêng tư mô phỏng cho RSA
-// Trong game này, chúng ta dùng `AES_KEY_PHRASE` và các chuỗi mock để mô phỏng
-// sự tồn tại của cặp khóa RSA mà không cần triển khai RSA phức tạp.
+const AES_KEY_PHRASE = '0123456789abcdef'; 
+const AES_IV_PHRASE = 'abcdef9876543210';
 const senderPrivateKey = 'sender_private_key_mock_for_rsa_signing'; // dùng để ký
 
 
-// --- Các Phần Tử DOM (Document Object Model) ---
 const playerNameInput = document.getElementById('playerNameInput');
 const startGameBtn = document.getElementById('startGameBtn');
 const playerNameDisplay = document.getElementById('playerNameDisplay');
